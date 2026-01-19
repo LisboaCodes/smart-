@@ -7,41 +7,84 @@ Sistema completo de gestao de loja com PDV, estoque, financeiro, clientes, loja 
 - **Framework**: Next.js 14.1.0 (App Router)
 - **Linguagem**: TypeScript
 - **Banco de Dados**: PostgreSQL (schema: `smartloja`)
-- **ORM**: SQL puro com biblioteca `pg`
+- **ORM**: Prisma + SQL puro com biblioteca `pg`
 - **Autenticacao**: NextAuth.js
 - **UI**: Tailwind CSS + Radix UI + shadcn/ui
 - **Graficos**: Recharts
 - **Icones**: Lucide React
+- **Tema**: Paleta dourada customizada
 
-## Configuracao do Ambiente
+## URLs de Producao
+
+- **Dominio**: https://smart.creativenext.com.br
+- **Loja**: https://smart.creativenext.com.br/loja
+- **Login Admin**: https://smart.creativenext.com.br/login
+- **Dashboard**: https://smart.creativenext.com.br/dashboard
+- **Admin Loja**: https://smart.creativenext.com.br/loja-admin
+
+## Deploy no Coolify
+
+### Repositorio GitHub
+```
+https://github.com/LisboaCodes/smart-.git
+```
+
+### Configuracao no Coolify
+- **Build Pack**: Nixpacks
+- **Porta**: 3001
+- **Branch**: main
+
+### Variaveis de Ambiente (Coolify)
+```env
+DATABASE_URL=postgresql://filehub:FileHub2024%40Secure%21Pass@201.23.70.201:5432/filehub?schema=smartloja
+NEXTAUTH_URL=https://smart.creativenext.com.br
+NEXTAUTH_SECRET=chave-secreta-super-segura-minimo-32-caracteres-aqui
+```
+
+## Configuracao Local
 
 ### Variaveis de Ambiente (.env)
 
 ```env
-# Banco de Dados
-DB_HOST=201.23.70.201
-DB_PORT=5432
-DB_NAME=filehub
-DB_USER=filehub
-DB_PASSWORD=FileHub2024@Secure!Pass
+# Database (PostgreSQL - Coolify Remoto)
+DATABASE_URL="postgresql://filehub:FileHub2024%40Secure%21Pass@201.23.70.201:5432/filehub?schema=smartloja"
+DB_HOST="201.23.70.201"
+DB_PORT="5432"
+DB_NAME="filehub"
+DB_USER="filehub"
+DB_PASSWORD="FileHub2024@Secure!Pass"
 
 # NextAuth
-NEXTAUTH_SECRET=sua-chave-secreta
-NEXTAUTH_URL=http://localhost:3003
-
-# Mercado Pago
-MERCADOPAGO_ACCESS_TOKEN=seu-token
+NEXTAUTH_URL="http://localhost:3001"
+NEXTAUTH_SECRET="chave-secreta-super-segura-minimo-32-caracteres-aqui"
 
 # Evolution API (WhatsApp)
-EVOLUTION_API_URL=http://localhost:8080
-EVOLUTION_API_KEY=sua-api-key
-EVOLUTION_INSTANCE=smartplus
+EVOLUTION_API_URL="http://localhost:8080"
+EVOLUTION_API_KEY="sua-api-key"
+EVOLUTION_INSTANCE="smart-acessorios"
+
+# Mercado Pago
+MERCADOPAGO_ACCESS_TOKEN="sua-access-token"
+MERCADOPAGO_PUBLIC_KEY="sua-public-key"
+
+# Upload
+UPLOAD_DIR="./public/uploads"
+MAX_FILE_SIZE="5242880"
+
+# n8n (Automacao de Atendimento)
+N8N_URL="http://localhost:5678"
+N8N_API_KEY="sua-n8n-api-key"
+N8N_WEBHOOK_URL="http://localhost:5678/webhook"
+
+# Instagram
+INSTAGRAM_ACCESS_TOKEN="seu-instagram-token"
+INSTAGRAM_BUSINESS_ID="seu-business-id"
 ```
 
 ### Scripts
 
 ```bash
-# Desenvolvimento (porta 3003 com Turbopack)
+# Desenvolvimento (porta 3001 com Turbopack)
 npm run dev
 
 # Build de producao
@@ -49,7 +92,52 @@ npm run build
 
 # Iniciar producao (porta 3001)
 npm start
+
+# Prisma
+npm run db:generate   # Gerar cliente
+npm run db:push       # Push schema
+npm run db:migrate    # Migrations
+npm run db:seed       # Seed data
+npm run db:studio     # Prisma Studio
 ```
+
+## Paleta de Cores (Tema Dourado)
+
+```css
+/* Cores principais */
+gold-50:  #fefce8
+gold-100: #fef9c3
+gold-200: #fef08a
+gold-300: #fee09f
+gold-400: #f9dc9c
+gold-500: #deb65c
+gold-600: #c99c38
+gold-700: #a16207
+gold-800: #854d0e
+gold-900: #713f12
+```
+
+Configurado em `tailwind.config.ts` e `src/styles/globals.css`.
+
+## Configuracao da Loja
+
+Arquivo: `src/lib/store-config.ts`
+
+```typescript
+export const storeConfig = {
+  name: 'Smart+ Acessorios',
+  logo: '/logo.png',
+  phone: '(79) 99999-9999',
+  whatsapp: '5579999999999',
+  email: 'contato@smartacessorios.com.br',
+  instagram: '@smartmaisacessorios',
+  address: 'Galeria Porto Plaza, sala 05',
+  city: 'Nossa Senhora da Gloria - SE',
+  cnpj: '52.875.660/0001-10',
+}
+```
+
+Para trocar a logo: substitua `/public/logo.png` ou altere o caminho no config.
 
 ## Estrutura do Projeto
 
@@ -68,13 +156,17 @@ src/
 │   │   ├── marketing/
 │   │   ├── atendimento/
 │   │   └── usuarios/
-│   ├── loja/                 # Loja virtual publica
+│   ├── (loja)/               # Loja publica (route group)
+│   │   ├── page.tsx          # Home
+│   │   ├── carrinho/
+│   │   └── produto/[id]/
+│   ├── loja/                 # Loja virtual
 │   │   ├── page.tsx          # Catalogo
-│   │   ├── carrinho/         # Carrinho de compras
-│   │   ├── checkout/         # Checkout completo
-│   │   ├── conta/            # Area do cliente
-│   │   ├── pedidos/          # Historico de pedidos
-│   │   └── produto/[id]/     # Detalhes do produto
+│   │   ├── carrinho/
+│   │   ├── checkout/
+│   │   ├── conta/
+│   │   ├── pedidos/
+│   │   └── produto/[id]/
 │   ├── loja-admin/           # Admin da loja virtual
 │   ├── login/
 │   └── api/
@@ -82,11 +174,11 @@ src/
 │       ├── categorias/
 │       ├── clientes/
 │       ├── vendas/
-│       ├── pedidos/          # Pedidos da loja online
-│       ├── frete/            # Calculo de frete
-│       ├── cupons/           # Sistema de cupons
-│       ├── avaliacoes/       # Avaliacoes de produtos
-│       ├── relatorios/       # Relatorios em HTML/PDF
+│       ├── pedidos/
+│       ├── frete/
+│       ├── cupons/
+│       ├── avaliacoes/
+│       ├── relatorios/
 │       └── financeiro/
 ├── components/
 │   ├── ui/                   # Componentes shadcn/ui
@@ -104,12 +196,14 @@ src/
 │   └── cart-context.tsx      # Context do carrinho
 └── lib/
     ├── db.ts                 # Funcoes de banco de dados
+    ├── prisma.ts             # Cliente Prisma
     ├── auth.ts               # Configuracao NextAuth
     ├── utils.ts              # Utilitarios
+    ├── store-config.ts       # Configuracoes da loja
     ├── permissions.ts        # Sistema de permissoes
     ├── loyalty-program.ts    # Programa de fidelidade
     ├── print-receipt.ts      # Impressao de recibos
-    ├── whatsapp-notifications.ts  # Notificacoes WhatsApp
+    ├── whatsapp-notifications.ts
     ├── n8n.ts
     └── evolution.ts
 ```
@@ -128,6 +222,8 @@ src/
 - [x] **Sistema de cupons** de desconto
 - [x] **Avaliacoes de produtos** com estrelas
 - [x] **Produtos relacionados** na pagina do produto
+- [x] **Header com carrinho** e contador de itens
+- [x] **Footer com informacoes** da loja
 
 ### Painel Administrativo
 
@@ -252,106 +348,25 @@ const points = calculatePointsEarned(150, config, true) // 150 + 50 bonus
 const tier = getLoyaltyTier(2500) // Ouro
 ```
 
-## Tabelas do Banco de Dados
+## Tabelas do Banco de Dados (Schema: smartloja)
 
 ### Principais
 - `users` - Usuarios do sistema
 - `products` - Produtos
+- `product_images` - Imagens dos produtos
 - `categories` - Categorias
+- `suppliers` - Fornecedores
 - `customers` - Clientes (PDV)
 - `store_customers` - Clientes (Loja Online)
 - `sales` - Vendas (PDV)
+- `sale_items` - Itens da venda
 - `orders` - Pedidos (Loja Online)
 - `order_items` - Itens do pedido
 - `financial_entries` - Lancamentos financeiros
+- `fixed_accounts` - Contas fixas
 - `coupons` - Cupons de desconto
 - `product_reviews` - Avaliacoes de produtos
-
-### Novas tabelas necessarias
-```sql
--- Cupons de desconto
-CREATE TABLE smartloja.coupons (
-  id UUID PRIMARY KEY,
-  code VARCHAR(50) UNIQUE NOT NULL,
-  type VARCHAR(20) NOT NULL, -- 'percentage' ou 'fixed'
-  value DECIMAL(10,2) NOT NULL,
-  description TEXT,
-  "minValue" DECIMAL(10,2),
-  "maxDiscount" DECIMAL(10,2),
-  "usageLimit" INTEGER,
-  "usageCount" INTEGER DEFAULT 0,
-  "expiresAt" TIMESTAMP,
-  active BOOLEAN DEFAULT true,
-  "createdAt" TIMESTAMP DEFAULT NOW(),
-  "updatedAt" TIMESTAMP DEFAULT NOW()
-);
-
--- Avaliacoes de produtos
-CREATE TABLE smartloja.product_reviews (
-  id UUID PRIMARY KEY,
-  "productId" UUID REFERENCES smartloja.products(id),
-  "customerName" VARCHAR(255) NOT NULL,
-  "customerEmail" VARCHAR(255) NOT NULL,
-  rating INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),
-  comment TEXT NOT NULL,
-  verified BOOLEAN DEFAULT false,
-  approved BOOLEAN DEFAULT false,
-  helpful INTEGER DEFAULT 0,
-  "createdAt" TIMESTAMP DEFAULT NOW(),
-  "updatedAt" TIMESTAMP DEFAULT NOW()
-);
-
--- Clientes da loja online
-CREATE TABLE smartloja.store_customers (
-  id UUID PRIMARY KEY,
-  name VARCHAR(255) NOT NULL,
-  email VARCHAR(255) UNIQUE NOT NULL,
-  phone VARCHAR(20),
-  cpf VARCHAR(14),
-  password VARCHAR(255) NOT NULL,
-  active BOOLEAN DEFAULT true,
-  "lastLogin" TIMESTAMP,
-  "createdAt" TIMESTAMP DEFAULT NOW(),
-  "updatedAt" TIMESTAMP DEFAULT NOW()
-);
-
--- Pedidos da loja online
-CREATE TABLE smartloja.orders (
-  id UUID PRIMARY KEY,
-  "orderNumber" VARCHAR(50) UNIQUE NOT NULL,
-  "customerName" VARCHAR(255) NOT NULL,
-  "customerEmail" VARCHAR(255) NOT NULL,
-  "customerPhone" VARCHAR(20),
-  "customerCpf" VARCHAR(14),
-  "shippingCep" VARCHAR(10),
-  "shippingStreet" VARCHAR(255),
-  "shippingNumber" VARCHAR(20),
-  "shippingComplement" VARCHAR(255),
-  "shippingNeighborhood" VARCHAR(255),
-  "shippingCity" VARCHAR(255),
-  "shippingState" VARCHAR(2),
-  "shippingMethod" VARCHAR(50),
-  "shippingCost" DECIMAL(10,2),
-  "paymentMethod" VARCHAR(50),
-  subtotal DECIMAL(10,2),
-  total DECIMAL(10,2),
-  status VARCHAR(50) DEFAULT 'pending',
-  "createdAt" TIMESTAMP DEFAULT NOW(),
-  "updatedAt" TIMESTAMP DEFAULT NOW()
-);
-
--- Itens do pedido
-CREATE TABLE smartloja.order_items (
-  id UUID PRIMARY KEY,
-  "orderId" UUID REFERENCES smartloja.orders(id),
-  "productId" UUID REFERENCES smartloja.products(id),
-  name VARCHAR(255) NOT NULL,
-  price DECIMAL(10,2) NOT NULL,
-  quantity INTEGER NOT NULL,
-  "variationId" UUID,
-  "createdAt" TIMESTAMP DEFAULT NOW()
-);
-```
+- `configurations` - Configuracoes do sistema
 
 ## Cupons Disponiveis (Teste)
 
@@ -359,17 +374,33 @@ CREATE TABLE smartloja.order_items (
 - `FRETEGRATIS` - Frete gratis
 - `BEMVINDO10` - 10% de desconto (boas-vindas)
 
-## URLs da Aplicacao
+## Integracao com Servicos
 
-- **Painel Admin**: http://localhost:3003/dashboard
-- **Loja Virtual**: http://localhost:3003/loja
-- **Checkout**: http://localhost:3003/loja/checkout
-- **Minha Conta**: http://localhost:3003/loja/conta
-- **Meus Pedidos**: http://localhost:3003/loja/pedidos
+### Coolify
+- Servidor: 201.23.70.201
+- Painel: https://painel.creativenext.com.br
+
+### PostgreSQL
+- Host: 201.23.70.201
+- Porta: 5432
+- Database: filehub
+- Schema: smartloja
+
+### Evolution API (WhatsApp)
+- Para notificacoes automaticas via WhatsApp
+- Configurar URL e API Key no .env
+
+### n8n (Automacoes)
+- Para fluxos de automacao de atendimento
+- Configurar URL e API Key no .env
+
+### Mercado Pago
+- Para pagamentos online
+- Configurar Access Token e Public Key no .env
 
 ## Contato
 
 **Loja**: Smart+ Acessorios
-**Endereco**: Galeria Porto Plaza, sala 05 - Nossa Senhora da Gloria, Sergipe
+**Endereco**: Galeria Porto Plaza, sala 05 - Nossa Senhora da Gloria, SE
 **CNPJ**: 52.875.660/0001-10
 **Instagram**: @smartmaisacessorios
