@@ -46,7 +46,7 @@ export async function sendWhatsAppMessage(data: NotificationData): Promise<boole
   try {
     const config = await getEvolutionConfig()
 
-    if (!config.apiUrl || !config.apiKey) {
+    if (!config || !config.apiUrl || !config.apiKey) {
       console.warn('Evolution API not configured')
       return false
     }
