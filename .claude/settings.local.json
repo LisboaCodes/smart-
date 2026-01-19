@@ -22,7 +22,9 @@
       "Bash(git init:*)",
       "Bash(git remote add:*)",
       "Bash(git add:*)",
-      "Bash(git commit -m \"$\\(cat <<''EOF''\nInitial commit - Sistema Loja\n\n- Next.js 14 com Turbopack\n- Prisma ORM com PostgreSQL\n- Tema dourado customizado\n- Admin dashboard\n- Loja frontend com carrinho\n- Autenticação configurada\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")"
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nInitial commit - Sistema Loja\n\n- Next.js 14 com Turbopack\n- Prisma ORM com PostgreSQL\n- Tema dourado customizado\n- Admin dashboard\n- Loja frontend com carrinho\n- Autenticação configurada\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git branch:*)",
+      "Bash(git push:*)"
     ]
   }
 }

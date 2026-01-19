@@ -41,8 +41,6 @@
     "clsx": "^2.1.0",
     "cmdk": "^0.2.1",
     "date-fns": "^3.3.1",
-    "escpos": "^3.0.0-alpha.6",
-    "escpos-usb": "^3.0.0-alpha.4",
     "lucide-react": "^0.344.0",
     "mercadopago": "^2.0.8",
     "next": "14.1.0",
