@@ -1,0 +1,631 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ==================== CONFIGURAÇÕES DA LOJA ====================
+
+model StoreSettings {
+  id                  String   @id @default(uuid())
+  storeName           String   @default("Smart+ Acessórios")
+  cnpj                String   @default("52.875.660/0001-10")
+  address             String   @default("Galeria Porto Plaza, sala 05., Nossa Senhora da Glória, Sergipe 49680-000")
+  phone               String?
+  email               String?
+  instagram           String?
+  whatsapp            String?
+  logoUrl             String?
+  faviconUrl          String?
+  primaryColor        String   @default("#8B5CF6")
+  secondaryColor      String   @default("#EC4899")
+  receiptMessage      String   @default("Obrigado pela preferência! Volte sempre!")
+  receiptFooter       String?
+  evolutionApiUrl     String?
+  evolutionApiKey     String?
+  evolutionInstance   String?
+  mercadoPagoToken    String?
+  mercadoPagoPublicKey String?
+  n8nUrl              String?
+  n8nApiKey           String?
+  n8nWebhookUrl       String?
+  instagramToken      String?
+  instagramBusinessId String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
+
+// ==================== USUÁRIOS E AUTENTICAÇÃO ====================
+
+enum UserRole {
+  ADMIN
+  MANAGER
+  CASHIER
+  STOCK
+}
+
+model User {
+  id            String    @id @default(uuid())
+  name          String
+  email         String    @unique
+  password      String
+  role          UserRole  @default(CASHIER)
+  active        Boolean   @default(true)
+  avatarUrl     String?
+  lastLogin     DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  sales         Sale[]
+  stockMovements StockMovement[]
+  activityLogs  ActivityLog[]
+  orders        Order[]
+
+  @@map("users")
+}
+
+model ActivityLog {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  action      String
+  entity      String
+  entityId    String?
+  details     Json?
+  ipAddress   String?
+  createdAt   DateTime @default(now())
+
+  @@map("activity_logs")
+}
+
+// ==================== PRODUTOS E ESTOQUE ====================
+
+model Category {
+  id          String    @id @default(uuid())
+  name        String    @unique
+  description String?
+  imageUrl    String?
+  active      Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  products    Product[]
+
+  @@map("categories")
+}
+
+model Supplier {
+  id          String    @id @default(uuid())
+  name        String
+  cnpj        String?
+  phone       String?
+  email       String?
+  address     String?
+  notes       String?
+  active      Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  products    Product[]
+
+  @@map("suppliers")
+}
+
+model Product {
+  id              String    @id @default(uuid())
+  sku             String    @unique
+  barcode         String?   @unique
+  name            String
+  description     String?
+  categoryId      String
+  category        Category  @relation(fields: [categoryId], references: [id])
+  supplierId      String?
+  supplier        Supplier? @relation(fields: [supplierId], references: [id])
+  costPrice       Decimal   @db.Decimal(10, 2)
+  salePrice       Decimal   @db.Decimal(10, 2)
+  promoPrice      Decimal?  @db.Decimal(10, 2)
+  promoStartDate  DateTime?
+  promoEndDate    DateTime?
+  stock           Int       @default(0)
+  minStock        Int       @default(5)
+  maxStock        Int?
+  unit            String    @default("UN")
+  weight          Decimal?  @db.Decimal(10, 3)
+  width           Decimal?  @db.Decimal(10, 2)
+  height          Decimal?  @db.Decimal(10, 2)
+  depth           Decimal?  @db.Decimal(10, 2)
+  active          Boolean   @default(true)
+  featured        Boolean   @default(false)
+  showInStore     Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  images          ProductImage[]
+  stockMovements  StockMovement[]
+  saleItems       SaleItem[]
+  cartItems       CartItem[]
+  orderItems      OrderItem[]
+
+  @@map("products")
+}
+
+model ProductImage {
+  id          String   @id @default(uuid())
+  productId   String
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  url         String
+  alt         String?
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  @@map("product_images")
+}
+
+enum StockMovementType {
+  ENTRY
+  EXIT
+  ADJUSTMENT
+  SALE
+  RETURN
+  TRANSFER
+}
+
+model StockMovement {
+  id          String            @id @default(uuid())
+  productId   String
+  product     Product           @relation(fields: [productId], references: [id])
+  type        StockMovementType
+  quantity    Int
+  previousStock Int
+  newStock    Int
+  reason      String?
+  userId      String
+  user        User              @relation(fields: [userId], references: [id])
+  saleId      String?
+  createdAt   DateTime          @default(now())
+
+  @@map("stock_movements")
+}
+
+// ==================== CLIENTES (CRM) ====================
+
+enum CustomerType {
+  REGULAR
+  VIP
+  WHOLESALE
+}
+
+model Customer {
+  id            String       @id @default(uuid())
+  name          String
+  email         String?      @unique
+  cpf           String?      @unique
+  phone         String?
+  whatsapp      String?
+  instagram     String?
+  birthDate     DateTime?
+  type          CustomerType @default(REGULAR)
+  notes         String?
+  address       String?
+  city          String?
+  state         String?
+  zipCode       String?
+  totalPurchases Decimal     @default(0) @db.Decimal(10, 2)
+  lastPurchase  DateTime?
+  active        Boolean      @default(true)
+  acceptsMarketing Boolean   @default(true)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  sales         Sale[]
+  orders        Order[]
+  carts         Cart[]
+
+  @@map("customers")
+}
+
+// ==================== VENDAS E PDV ====================
+
+model PaymentMethod {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  type        String   // CASH, CREDIT, DEBIT, PIX, BOLETO, TRANSFER
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  cardMachines CardMachine[]
+  salePayments SalePayment[]
+  orderPayments OrderPayment[]
+
+  @@map("payment_methods")
+}
+
+model CardMachine {
+  id              String        @id @default(uuid())
+  name            String
+  brand           String?       // Stone, Cielo, PagSeguro, etc.
+  paymentMethodId String
+  paymentMethod   PaymentMethod @relation(fields: [paymentMethodId], references: [id])
+  creditFee       Decimal       @db.Decimal(5, 2) // Taxa crédito %
+  debitFee        Decimal       @db.Decimal(5, 2) // Taxa débito %
+  pixFee          Decimal       @default(0) @db.Decimal(5, 2) // Taxa PIX %
+  installmentFees Json?         // {"2": 3.5, "3": 4.0, ...}
+  active          Boolean       @default(true)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  salePayments    SalePayment[]
+
+  @@map("card_machines")
+}
+
+enum SaleStatus {
+  PENDING
+  COMPLETED
+  CANCELLED
+  REFUNDED
+}
+
+model Sale {
+  id              String      @id @default(uuid())
+  code            String      @unique // Número da venda
+  customerId      String?
+  customer        Customer?   @relation(fields: [customerId], references: [id])
+  userId          String
+  user            User        @relation(fields: [userId], references: [id])
+  status          SaleStatus  @default(COMPLETED)
+  subtotal        Decimal     @db.Decimal(10, 2)
+  discountType    String?     // PERCENT, VALUE
+  discountValue   Decimal?    @db.Decimal(10, 2)
+  discountAmount  Decimal     @default(0) @db.Decimal(10, 2)
+  total           Decimal     @db.Decimal(10, 2)
+  totalCost       Decimal     @db.Decimal(10, 2) // Custo total dos produtos
+  profit          Decimal     @db.Decimal(10, 2) // Lucro bruto
+  netProfit       Decimal     @db.Decimal(10, 2) // Lucro líquido (após taxas)
+  totalFees       Decimal     @default(0) @db.Decimal(10, 2) // Total de taxas
+  notes           String?
+  printedAt       DateTime?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  items           SaleItem[]
+  payments        SalePayment[]
+
+  @@map("sales")
+}
+
+model SaleItem {
+  id          String   @id @default(uuid())
+  saleId      String
+  sale        Sale     @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  productId   String
+  product     Product  @relation(fields: [productId], references: [id])
+  quantity    Int
+  unitPrice   Decimal  @db.Decimal(10, 2)
+  costPrice   Decimal  @db.Decimal(10, 2)
+  discount    Decimal  @default(0) @db.Decimal(10, 2)
+  total       Decimal  @db.Decimal(10, 2)
+  createdAt   DateTime @default(now())
+
+  @@map("sale_items")
+}
+
+model SalePayment {
+  id              String        @id @default(uuid())
+  saleId          String
+  sale            Sale          @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  paymentMethodId String
+  paymentMethod   PaymentMethod @relation(fields: [paymentMethodId], references: [id])
+  cardMachineId   String?
+  cardMachine     CardMachine?  @relation(fields: [cardMachineId], references: [id])
+  amount          Decimal       @db.Decimal(10, 2)
+  installments    Int           @default(1)
+  fee             Decimal       @default(0) @db.Decimal(10, 2) // Taxa cobrada
+  netAmount       Decimal       @db.Decimal(10, 2) // Valor líquido
+  createdAt       DateTime      @default(now())
+
+  @@map("sale_payments")
+}
+
+// ==================== FINANCEIRO ====================
+
+enum FinancialEntryType {
+  INCOME
+  EXPENSE
+}
+
+enum FinancialEntryStatus {
+  PENDING
+  PAID
+  OVERDUE
+  CANCELLED
+}
+
+model FinancialEntry {
+  id            String                @id @default(uuid())
+  type          FinancialEntryType
+  status        FinancialEntryStatus  @default(PENDING)
+  description   String
+  amount        Decimal               @db.Decimal(10, 2)
+  dueDate       DateTime
+  paidDate      DateTime?
+  paidAmount    Decimal?              @db.Decimal(10, 2)
+  category      String
+  expenseId     String?               // Referência a conta fixa
+  expense       Expense?              @relation(fields: [expenseId], references: [id])
+  saleId        String?               // Referência a venda
+  notes         String?
+  createdAt     DateTime              @default(now())
+  updatedAt     DateTime              @updatedAt
+
+  @@map("financial_entries")
+}
+
+// ==================== CONTAS FIXAS ====================
+
+enum ExpenseFrequency {
+  DAILY
+  WEEKLY
+  BIWEEKLY
+  MONTHLY
+  QUARTERLY
+  YEARLY
+  ONCE
+}
+
+model Expense {
+  id            String           @id @default(uuid())
+  name          String
+  description   String?
+  amount        Decimal          @db.Decimal(10, 2)
+  frequency     ExpenseFrequency
+  dueDay        Int?             // Dia do vencimento (1-31)
+  category      String
+  active        Boolean          @default(true)
+  lastPaidDate  DateTime?
+  nextDueDate   DateTime?
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  financialEntries FinancialEntry[]
+
+  @@map("expenses")
+}
+
+// ==================== MARKETING ====================
+
+enum CampaignType {
+  BIRTHDAY
+  PROMOTIONAL
+  INACTIVE_CUSTOMERS
+  NEW_PRODUCTS
+  CUSTOM
+}
+
+enum CampaignStatus {
+  DRAFT
+  SCHEDULED
+  RUNNING
+  COMPLETED
+  CANCELLED
+}
+
+enum CampaignChannel {
+  WHATSAPP
+  INSTAGRAM
+  EMAIL
+  SMS
+}
+
+model MarketingCampaign {
+  id            String          @id @default(uuid())
+  name          String
+  type          CampaignType
+  channel       CampaignChannel
+  status        CampaignStatus  @default(DRAFT)
+  message       String          @db.Text
+  imageUrl      String?
+  scheduledDate DateTime?
+  startedAt     DateTime?
+  completedAt   DateTime?
+  targetCount   Int             @default(0)
+  sentCount     Int             @default(0)
+  errorCount    Int             @default(0)
+  filters       Json?           // Filtros de clientes
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  messages      CampaignMessage[]
+
+  @@map("marketing_campaigns")
+}
+
+model CampaignMessage {
+  id          String            @id @default(uuid())
+  campaignId  String
+  campaign    MarketingCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  customerId  String
+  phone       String
+  status      String            // PENDING, SENT, DELIVERED, READ, ERROR
+  sentAt      DateTime?
+  deliveredAt DateTime?
+  readAt      DateTime?
+  errorMessage String?
+  createdAt   DateTime          @default(now())
+
+  @@map("campaign_messages")
+}
+
+model MessageTemplate {
+  id          String   @id @default(uuid())
+  name        String
+  type        String   // BIRTHDAY, WELCOME, PROMOTION, ABANDONED_CART, etc.
+  message     String   @db.Text
+  variables   Json?    // {"nome": "Nome do cliente", "produto": "Nome do produto"}
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("message_templates")
+}
+
+// ==================== LOJA VIRTUAL ====================
+
+model Cart {
+  id          String    @id @default(uuid())
+  customerId  String?
+  customer    Customer? @relation(fields: [customerId], references: [id])
+  sessionId   String?   @unique // Para usuários não logados
+  expiresAt   DateTime
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  items       CartItem[]
+
+  @@map("carts")
+}
+
+model CartItem {
+  id          String   @id @default(uuid())
+  cartId      String
+  cart        Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  productId   String
+  product     Product  @relation(fields: [productId], references: [id])
+  quantity    Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([cartId, productId])
+  @@map("cart_items")
+}
+
+enum OrderStatus {
+  PENDING_PAYMENT
+  PAYMENT_CONFIRMED
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  REFUNDED
+}
+
+model Order {
+  id              String      @id @default(uuid())
+  code            String      @unique // Número do pedido
+  customerId      String
+  customer        Customer    @relation(fields: [customerId], references: [id])
+  userId          String?     // Vendedor (se aplicável)
+  user            User?       @relation(fields: [userId], references: [id])
+  status          OrderStatus @default(PENDING_PAYMENT)
+  subtotal        Decimal     @db.Decimal(10, 2)
+  discountAmount  Decimal     @default(0) @db.Decimal(10, 2)
+  shippingAmount  Decimal     @default(0) @db.Decimal(10, 2)
+  total           Decimal     @db.Decimal(10, 2)
+  shippingAddress String?
+  shippingCity    String?
+  shippingState   String?
+  shippingZipCode String?
+  trackingCode    String?
+  notes           String?
+  paidAt          DateTime?
+  shippedAt       DateTime?
+  deliveredAt     DateTime?
+  cancelledAt     DateTime?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  items           OrderItem[]
+  payments        OrderPayment[]
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id          String   @id @default(uuid())
+  orderId     String
+  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId   String
+  product     Product  @relation(fields: [productId], references: [id])
+  quantity    Int
+  unitPrice   Decimal  @db.Decimal(10, 2)
+  total       Decimal  @db.Decimal(10, 2)
+  createdAt   DateTime @default(now())
+
+  @@map("order_items")
+}
+
+model OrderPayment {
+  id              String        @id @default(uuid())
+  orderId         String
+  order           Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  paymentMethodId String
+  paymentMethod   PaymentMethod @relation(fields: [paymentMethodId], references: [id])
+  externalId      String?       // ID do Mercado Pago
+  amount          Decimal       @db.Decimal(10, 2)
+  status          String        // PENDING, APPROVED, REJECTED, REFUNDED
+  pixCode         String?       @db.Text
+  pixQrCode       String?       @db.Text
+  paidAt          DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@map("order_payments")
+}
+
+// ==================== ATENDIMENTO (n8n Integration) ====================
+
+model Conversation {
+  id              String    @id @default(uuid())
+  channel         String    // WHATSAPP, INSTAGRAM
+  externalId      String    // ID da conversa na plataforma
+  customerPhone   String?
+  customerName    String?
+  customerId      String?
+  status          String    @default("OPEN") // OPEN, PENDING, CLOSED
+  assignedUserId  String?
+  lastMessageAt   DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  messages        ConversationMessage[]
+
+  @@unique([channel, externalId])
+  @@map("conversations")
+}
+
+model ConversationMessage {
+  id              String       @id @default(uuid())
+  conversationId  String
+  conversation    Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  direction       String       // INBOUND, OUTBOUND
+  type            String       // TEXT, IMAGE, AUDIO, VIDEO, DOCUMENT
+  content         String       @db.Text
+  mediaUrl        String?
+  externalId      String?
+  status          String       @default("SENT") // SENT, DELIVERED, READ, FAILED
+  sentAt          DateTime     @default(now())
+  deliveredAt     DateTime?
+  readAt          DateTime?
+  createdAt       DateTime     @default(now())
+
+  @@map("conversation_messages")
+}
+
+model AutomationRule {
+  id          String   @id @default(uuid())
+  name        String
+  channel     String   // WHATSAPP, INSTAGRAM, ALL
+  trigger     String   // KEYWORD, NEW_CONVERSATION, INACTIVE, etc.
+  conditions  Json?    // Condições para disparar
+  actions     Json     // Ações a executar
+  active      Boolean  @default(true)
+  priority    Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("automation_rules")
+}

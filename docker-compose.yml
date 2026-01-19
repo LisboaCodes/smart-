@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3001"
+    environment:
+      - DATABASE_URL=postgresql://loja:senha_segura_aqui@db:5432/loja?schema=public
+      - NEXTAUTH_URL=http://localhost:3001
+      - PORT=3001
+      - NEXTAUTH_SECRET=sua-chave-secreta-minimo-32-caracteres-aqui
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - loja-network
+
+  db:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_DB=loja
+      - POSTGRES_USER=loja
+      - POSTGRES_PASSWORD=senha_segura_aqui
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U loja -d loja"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - loja-network
+
+  n8n:
+    image: n8nio/n8n:latest
+    environment:
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=admin
+      - N8N_BASIC_AUTH_PASSWORD=admin123
+      - N8N_HOST=localhost
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
+      - WEBHOOK_URL=http://localhost:5678/
+      - GENERIC_TIMEZONE=America/Sao_Paulo
+    ports:
+      - "5678:5678"
+    volumes:
+      - n8n_data:/home/node/.n8n
+    restart: unless-stopped
+    networks:
+      - loja-network
+
+volumes:
+  pgdata:
+  n8n_data:
+
+networks:
+  loja-network:
+    driver: bridge
