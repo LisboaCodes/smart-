@@ -139,8 +139,8 @@ export default function ContaPage() {
 
         <div className="grid md:grid-cols-3 gap-6">
           {/* Quick Links */}
-          <Card className="cursor-pointer hover:shadow-md transition-shadow" asChild>
-            <Link href="/loja/pedidos">
+          <Link href="/loja/pedidos">
+            <Card className="cursor-pointer hover:shadow-md transition-shadow">
               <CardHeader>
                 <Package className="h-8 w-8 text-primary mb-2" />
                 <CardTitle>Meus Pedidos</CardTitle>
@@ -148,8 +148,8 @@ export default function ContaPage() {
                   Acompanhe seus pedidos e historico de compras
                 </CardDescription>
               </CardHeader>
-            </Link>
-          </Card>
+            </Card>
+          </Link>
 
           <Card className="cursor-pointer hover:shadow-md transition-shadow">
             <CardHeader>
