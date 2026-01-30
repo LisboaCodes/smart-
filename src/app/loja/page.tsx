@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ProductCard } from '@/components/loja/product-card'
+import { SearchBar } from '@/components/loja/search-bar'
 import { Sparkles } from 'lucide-react'
 
 function ProductsGrid({ products }: { products: any[] }) {
@@ -51,7 +52,7 @@ export default async function LojaPage({
 }) {
   const [featured, products, categories] = await Promise.all([
     getFeaturedStoreProducts(),
-    getStoreProducts(searchParams.categoria),
+    getStoreProducts(searchParams.categoria, searchParams.busca),
     getStoreCategoriesWithCount(),
   ])
 
@@ -81,13 +82,15 @@ export default async function LojaPage({
         </section>
       )}
 
-      {/* Categorias */}
-      <section className="mb-8">
+      {/* Busca e Categorias */}
+      <section className="mb-8 space-y-4">
+        <SearchBar />
+
         <div className="flex gap-2 flex-wrap">
           <Link href="/loja">
             <Badge
               variant={!searchParams.categoria ? 'default' : 'outline'}
-              className={`cursor-pointer text-sm py-1 px-3 ${!searchParams.categoria ? 'bg-gold-600 hover:bg-gold-700' : 'border-gold-400 text-gold-700 hover:bg-gold-50'}`}
+              className={`cursor-pointer text-sm py-1 px-3 ${!searchParams.categoria ? 'bg-gold-600 hover:bg-gold-700' : 'border-gold-400 text-gold-700 hover:bg-gold-50 dark:border-gold-600 dark:text-gold-400 dark:hover:bg-gold-950'}`}
             >
               Todos
             </Badge>
@@ -103,7 +106,7 @@ export default async function LojaPage({
                     ? 'default'
                     : 'outline'
                 }
-                className={`cursor-pointer text-sm py-1 px-3 ${searchParams.categoria?.toLowerCase() === cat.name.toLowerCase() ? 'bg-gold-600 hover:bg-gold-700' : 'border-gold-400 text-gold-700 hover:bg-gold-50'}`}
+                className={`cursor-pointer text-sm py-1 px-3 ${searchParams.categoria?.toLowerCase() === cat.name.toLowerCase() ? 'bg-gold-600 hover:bg-gold-700' : 'border-gold-400 text-gold-700 hover:bg-gold-50 dark:border-gold-600 dark:text-gold-400 dark:hover:bg-gold-950'}`}
               >
                 {cat.name} ({cat.productCount})
               </Badge>
@@ -127,8 +130,10 @@ export default async function LojaPage({
 
       {/* Produtos */}
       <section>
-        <h2 className="text-2xl font-bold mb-6 text-gold-800">
-          {searchParams.categoria
+        <h2 className="text-2xl font-bold mb-6 text-gold-800 dark:text-gold-400">
+          {searchParams.busca
+            ? `Resultados para "${searchParams.busca}"`
+            : searchParams.categoria
             ? `${searchParams.categoria.charAt(0).toUpperCase()}${searchParams.categoria.slice(1)}`
             : 'Todos os Produtos'}
         </h2>

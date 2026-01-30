@@ -90,8 +90,24 @@ export function ProductActions({ product }: ProductActionsProps) {
     }
   }
 
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+    }).format(value)
+  }
+
+  const total = product.price * quantity
+
   const whatsappMessage = encodeURIComponent(
-    `Ola! Tenho interesse no produto: ${product.name}\n${window?.location?.href || ''}`
+    `🛍️ *Pedido - Smart+ Acessórios*\n\n` +
+    `*Produto:* ${product.name}\n` +
+    `*SKU:* ${product.sku}\n` +
+    `*Quantidade:* ${quantity}\n` +
+    `*Valor unitário:* ${formatCurrency(product.price)}\n` +
+    `${product.originalPrice ? `*Valor original:* ${formatCurrency(product.originalPrice)}\n` : ''}` +
+    `*Total:* ${formatCurrency(total)}\n\n` +
+    `🔗 Link do produto:\n${typeof window !== 'undefined' ? window.location.href : ''}`
   )
 
   return (

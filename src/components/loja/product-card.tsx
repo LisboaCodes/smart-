@@ -63,14 +63,14 @@ export function ProductCard({ product }: ProductCardProps) {
       </Link>
       <CardContent className="p-4">
         <Link href={`/loja/produto/${product.id}`}>
-          <p className="text-xs text-gold-600 mb-1">
+          <p className="text-xs text-gold-600 dark:text-gold-400 mb-1">
             {product.categoryName}
           </p>
-          <h3 className="font-medium line-clamp-2 group-hover:text-gold-700 transition-colors">
+          <h3 className="font-medium line-clamp-2 text-gray-900 dark:text-gray-100 group-hover:text-gold-700 dark:group-hover:text-gold-400 transition-colors">
             {product.name}
           </h3>
           <div className="mt-2 flex items-center gap-2">
-            <span className="text-lg font-bold text-gold-700">
+            <span className="text-lg font-bold text-gold-700 dark:text-gold-400">
               {formatCurrency(price)}
             </span>
             {hasPromo && originalPrice && (

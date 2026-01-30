@@ -600,7 +600,8 @@ export async function createSaleTransaction(data: {
 // Store products (for public store)
 export async function getFeaturedStoreProducts() {
   return query(`
-    SELECT p.*, c.name as "categoryName", c.id as "categoryId"
+    SELECT p.*, c.name as "categoryName", c.id as "categoryId",
+      (SELECT url FROM smartloja.product_images pi WHERE pi."productId" = p.id ORDER BY pi."order" LIMIT 1) as "imageUrl"
     FROM smartloja.products p
     LEFT JOIN smartloja.categories c ON p."categoryId" = c.id
     WHERE p.active = true AND p."showInStore" = true AND p.featured = true AND p.stock > 0
@@ -609,27 +610,32 @@ export async function getFeaturedStoreProducts() {
   `)
 }
 
-export async function getStoreProducts(categorySlug?: string) {
-  if (categorySlug) {
-    return query(`
-      SELECT p.*, c.name as "categoryName", c.id as "categoryId"
-      FROM smartloja.products p
-      LEFT JOIN smartloja.categories c ON p."categoryId" = c.id
-      WHERE p.active = true AND p."showInStore" = true AND p.stock > 0
-        AND LOWER(c.name) LIKE LOWER($1)
-      ORDER BY p."createdAt" DESC
-      LIMIT 20
-    `, [`%${categorySlug}%`])
-  }
-
-  return query(`
-    SELECT p.*, c.name as "categoryName", c.id as "categoryId"
+export async function getStoreProducts(categorySlug?: string, search?: string) {
+  let sql = `
+    SELECT p.*, c.name as "categoryName", c.id as "categoryId",
+      (SELECT url FROM smartloja.product_images pi WHERE pi."productId" = p.id ORDER BY pi."order" LIMIT 1) as "imageUrl"
     FROM smartloja.products p
     LEFT JOIN smartloja.categories c ON p."categoryId" = c.id
     WHERE p.active = true AND p."showInStore" = true AND p.stock > 0
-    ORDER BY p."createdAt" DESC
-    LIMIT 20
-  `)
+  `
+  const params: any[] = []
+  let paramIndex = 1
+
+  if (categorySlug) {
+    sql += ` AND LOWER(c.name) LIKE LOWER($${paramIndex})`
+    params.push(`%${categorySlug}%`)
+    paramIndex++
+  }
+
+  if (search) {
+    sql += ` AND (LOWER(p.name) LIKE LOWER($${paramIndex}) OR LOWER(p.description) LIKE LOWER($${paramIndex}))`
+    params.push(`%${search}%`)
+    paramIndex++
+  }
+
+  sql += ` ORDER BY p."createdAt" DESC LIMIT 20`
+
+  return query(sql, params)
 }
 
 export async function getStoreCategoriesWithCount() {

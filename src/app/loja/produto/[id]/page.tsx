@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
+import { Metadata } from 'next'
 import { getStoreProductById, getRelatedStoreProducts } from '@/lib/db'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
@@ -13,6 +14,53 @@ import {
   Truck,
   Shield,
 } from 'lucide-react'
+
+export async function generateMetadata({
+  params,
+}: {
+  params: { id: string }
+}): Promise<Metadata> {
+  const product = await getStoreProductById(params.id)
+
+  if (!product) {
+    return {
+      title: 'Produto não encontrado',
+    }
+  }
+
+  const hasPromo =
+    product.promoPrice &&
+    product.promoEndDate &&
+    new Date() <= new Date(product.promoEndDate)
+  const price = hasPromo ? Number(product.promoPrice) : Number(product.salePrice)
+  const mainImage = product.images?.[0]?.url || '/logo.png'
+  const imageUrl = mainImage.startsWith('http') ? mainImage : `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3001'}${mainImage}`
+
+  return {
+    title: `${product.name} - Smart+ Acessórios`,
+    description: product.description || `Compre ${product.name} na Smart+ Acessórios. ${formatCurrency(price)}`,
+    openGraph: {
+      title: product.name,
+      description: product.description || `Compre ${product.name} na Smart+ Acessórios`,
+      images: [
+        {
+          url: imageUrl,
+          width: 800,
+          height: 800,
+          alt: product.name,
+        },
+      ],
+      type: 'website',
+      siteName: 'Smart+ Acessórios',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: product.name,
+      description: product.description || `Compre ${product.name} na Smart+ Acessórios`,
+      images: [imageUrl],
+    },
+  }
+}
 
 export default async function ProductPage({
   params,
@@ -109,10 +157,10 @@ export default async function ProductPage({
         {/* Detalhes */}
         <div className="space-y-6">
           <div>
-            <p className="text-sm text-gold-600 mb-1">
+            <p className="text-sm text-gold-600 dark:text-gold-400 mb-1">
               {product.categoryName} | SKU: {product.sku}
             </p>
-            <h1 className="text-3xl font-bold text-gray-900">{product.name}</h1>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{product.name}</h1>
           </div>
 
           {/* Preco */}
