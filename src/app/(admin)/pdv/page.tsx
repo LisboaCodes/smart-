@@ -39,8 +39,10 @@ import {
   Loader2,
   Printer,
   X,
+  ScanLine,
 } from 'lucide-react'
 import { formatCurrency } from '@/lib/utils'
+import { BarcodeScanner } from '@/components/pdv/barcode-scanner'
 
 interface Product {
   id: string
@@ -87,6 +89,7 @@ export default function PDVPage() {
 
   const [customerDialogOpen, setCustomerDialogOpen] = useState(false)
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false)
+  const [scannerOpen, setScannerOpen] = useState(false)
   const [customerSearch, setCustomerSearch] = useState('')
 
   const [payments, setPayments] = useState<{ methodId: string; amount: number }[]>([])
@@ -161,6 +164,30 @@ export default function PDVPage() {
     setSearch('')
     searchRef.current?.focus()
   }, [toast])
+
+  const handleBarcodeScan = useCallback((barcode: string) => {
+    // Buscar produto pelo código de barras
+    const product = products.find(
+      (p) => p.sku === barcode || (p as any).barcode === barcode
+    )
+
+    if (product) {
+      addToCart(product)
+      toast({
+        title: 'Produto adicionado!',
+        description: `${product.name} - ${formatCurrency(product.salePrice)}`,
+        variant: 'success',
+      })
+    } else {
+      toast({
+        title: 'Produto não encontrado',
+        description: `Código: ${barcode}`,
+        variant: 'destructive',
+      })
+      // Reabrir scanner para tentar novamente
+      setTimeout(() => setScannerOpen(true), 500)
+    }
+  }, [products, addToCart, toast])
 
   const updateQuantity = (productId: string, delta: number) => {
     setCart((prev) =>
@@ -306,7 +333,7 @@ export default function PDVPage() {
       <div className="flex-1 flex flex-col">
         <Card className="flex-1 flex flex-col">
           <CardHeader className="pb-3">
-            <div className="flex gap-4">
+            <div className="flex gap-2">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -317,6 +344,16 @@ export default function PDVPage() {
                   className="pl-9 text-lg h-12"
                 />
               </div>
+              <Button
+                variant="outline"
+                size="lg"
+                className="h-12 px-4"
+                onClick={() => setScannerOpen(true)}
+                title="Escanear código de barras"
+              >
+                <ScanLine className="h-5 w-5" />
+                <span className="ml-2 hidden sm:inline">Escanear</span>
+              </Button>
             </div>
           </CardHeader>
           <CardContent className="flex-1 overflow-hidden">
@@ -671,6 +708,13 @@ export default function PDVPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Scanner de código de barras */}
+      <BarcodeScanner
+        open={scannerOpen}
+        onOpenChange={setScannerOpen}
+        onScan={handleBarcodeScan}
+      />
     </div>
   )
 }

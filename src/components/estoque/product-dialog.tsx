@@ -25,7 +25,11 @@ import {
 } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { useToast } from '@/hooks/use-toast'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Printer, RefreshCw } from 'lucide-react'
+import { ImageUpload, ImageData } from './image-upload'
+import { BarcodeDisplay } from './barcode-display'
+import { PrintLabelDialog } from './print-label-dialog'
+import { generateEAN13 } from '@/lib/barcode'
 
 const productSchema = z.object({
   sku: z.string().min(1, 'SKU é obrigatório'),
@@ -64,6 +68,9 @@ export function ProductDialog({
 }: ProductDialogProps) {
   const { toast } = useToast()
   const [loading, setLoading] = useState(false)
+  const [images, setImages] = useState<ImageData[]>([])
+  const [uploadingImages, setUploadingImages] = useState(false)
+  const [printLabelOpen, setPrintLabelOpen] = useState(false)
 
   const {
     register,
@@ -108,10 +115,22 @@ export function ProductDialog({
         showInStore: product.showInStore,
         featured: product.featured,
       })
+
+      // Carregar imagens existentes
+      if (product.images && product.images.length > 0) {
+        const existingImages: ImageData[] = product.images.map((img: any) => ({
+          id: img.id,
+          url: img.url,
+          order: img.order
+        }))
+        setImages(existingImages)
+      } else {
+        setImages([])
+      }
     } else {
       reset({
         sku: generateSKU(),
-        barcode: '',
+        barcode: generateEAN13(), // Gerar código de barras automaticamente
         name: '',
         description: '',
         categoryId: '',
@@ -124,6 +143,7 @@ export function ProductDialog({
         showInStore: true,
         featured: false,
       })
+      setImages([])
     }
   }, [product, reset, open])
 
@@ -136,38 +156,98 @@ export function ProductDialog({
     return result
   }
 
+  const handleGenerateBarcode = () => {
+    const newBarcode = generateEAN13()
+    setValue('barcode', newBarcode)
+    toast({
+      title: 'Código gerado!',
+      description: `Código de barras: ${newBarcode}`,
+      variant: 'success',
+    })
+  }
+
+  const uploadImages = async (productId: string): Promise<string[]> => {
+    const imagesToUpload = images.filter(img => img.file)
+
+    if (imagesToUpload.length === 0) {
+      return images.map(img => img.url)
+    }
+
+    setUploadingImages(true)
+
+    try {
+      const formData = new FormData()
+      formData.append('productId', productId)
+
+      imagesToUpload.forEach(img => {
+        if (img.file) {
+          formData.append('files', img.file)
+        }
+      })
+
+      const uploadRes = await fetch('/api/produtos/images', {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (!uploadRes.ok) {
+        throw new Error('Erro ao fazer upload das imagens')
+      }
+
+      const { urls } = await uploadRes.json()
+
+      // Combinar URLs existentes com as novas
+      const existingUrls = images.filter(img => !img.file).map(img => img.url)
+      return [...existingUrls, ...urls]
+    } finally {
+      setUploadingImages(false)
+    }
+  }
+
   const onSubmit = async (data: ProductFormData) => {
     setLoading(true)
     try {
       const url = product ? `/api/produtos/${product.id}` : '/api/produtos'
       const method = product ? 'PUT' : 'POST'
 
+      // Criar/atualizar produto
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       })
 
-      if (res.ok) {
-        toast({
-          title: 'Sucesso',
-          description: product ? 'Produto atualizado' : 'Produto criado',
-          variant: 'success',
-        })
-        onOpenChange(false)
-        onSuccess()
-      } else {
+      if (!res.ok) {
         const error = await res.json()
-        toast({
-          title: 'Erro',
-          description: error.message || 'Erro ao salvar produto',
-          variant: 'destructive',
+        throw new Error(error.message || 'Erro ao salvar produto')
+      }
+
+      const savedProduct = await res.json()
+      const productId = savedProduct.id || product?.id
+
+      // Upload de imagens se houver
+      if (images.length > 0) {
+        const imageUrls = await uploadImages(productId)
+
+        // Salvar URLs das imagens no banco
+        await fetch(`/api/produtos/${productId}/images`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ urls: imageUrls }),
         })
       }
+
+      toast({
+        title: 'Sucesso',
+        description: product ? 'Produto atualizado' : 'Produto criado',
+        variant: 'success',
+      })
+      onOpenChange(false)
+      onSuccess()
     } catch (error) {
       toast({
         title: 'Erro',
-        description: 'Erro ao salvar produto',
+        description: error instanceof Error ? error.message : 'Erro ao salvar produto',
         variant: 'destructive',
       })
     } finally {
@@ -198,9 +278,44 @@ export function ProductDialog({
             </div>
             <div className="space-y-2">
               <Label htmlFor="barcode">Código de Barras</Label>
-              <Input id="barcode" {...register('barcode')} />
+              <div className="flex gap-2">
+                <Input id="barcode" {...register('barcode')} />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={handleGenerateBarcode}
+                  title="Gerar novo código"
+                >
+                  <RefreshCw className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           </div>
+
+          {/* Visualização do código de barras */}
+          {watch('barcode') && watch('barcode')?.length === 13 && (
+            <div className="border rounded-lg p-4 bg-muted/50">
+              <div className="flex items-center justify-between mb-2">
+                <Label>Preview do Código de Barras</Label>
+                {product && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPrintLabelOpen(true)}
+                    className="gap-2"
+                  >
+                    <Printer className="h-4 w-4" />
+                    Imprimir Etiqueta
+                  </Button>
+                )}
+              </div>
+              <div className="flex justify-center">
+                <BarcodeDisplay value={watch('barcode') || ''} />
+              </div>
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label htmlFor="name">Nome *</Label>
@@ -213,6 +328,15 @@ export function ProductDialog({
           <div className="space-y-2">
             <Label htmlFor="description">Descrição</Label>
             <Textarea id="description" {...register('description')} rows={3} />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Imagens do Produto</Label>
+            <ImageUpload
+              productId={product?.id}
+              initialImages={images}
+              onChange={setImages}
+            />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -335,13 +459,26 @@ export function ProductDialog({
             >
               Cancelar
             </Button>
-            <Button type="submit" disabled={loading}>
-              {loading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              {product ? 'Salvar' : 'Criar'}
+            <Button type="submit" disabled={loading || uploadingImages}>
+              {(loading || uploadingImages) && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              {uploadingImages ? 'Enviando imagens...' : product ? 'Salvar' : 'Criar'}
             </Button>
           </DialogFooter>
         </form>
       </DialogContent>
+
+      {/* Dialog de impressão de etiquetas */}
+      {product && (
+        <PrintLabelDialog
+          open={printLabelOpen}
+          onOpenChange={setPrintLabelOpen}
+          product={{
+            name: product.name,
+            barcode: watch('barcode') || product.barcode || '',
+            salePrice: watch('salePrice') || product.salePrice,
+          }}
+        />
+      )}
     </Dialog>
   )
 }

@@ -12,6 +12,7 @@ import {
   deactivateProduct,
   deleteProduct,
 } from '@/lib/db'
+import { deleteProductImages } from '@/lib/upload'
 
 export async function GET(
   request: NextRequest,
@@ -146,7 +147,10 @@ export async function DELETE(
       })
     }
 
-    // Deletar produto
+    // Deletar imagens do filesystem
+    await deleteProductImages(params.id)
+
+    // Deletar produto (imagens no banco serão deletadas pelo CASCADE)
     await deleteProduct(params.id)
 
     return NextResponse.json({ message: 'Produto excluído' })
