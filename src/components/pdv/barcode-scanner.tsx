@@ -45,6 +45,14 @@ export function BarcodeScanner({ open, onOpenChange, onScan }: BarcodeScannerPro
       setError(null);
       setScanning(true);
 
+      // Verificar se está em contexto seguro (HTTPS ou localhost)
+      const isSecureContext = window.isSecureContext;
+      if (!isSecureContext && window.location.hostname !== 'localhost') {
+        setError('⚠️ Câmera requer HTTPS. Acesse via https:// ou localhost para usar o scanner.');
+        setScanning(false);
+        return;
+      }
+
       // Criar instância do scanner
       const scanner = new Html5Qrcode('barcode-reader');
       scannerRef.current = scanner;
@@ -53,7 +61,7 @@ export function BarcodeScanner({ open, onOpenChange, onScan }: BarcodeScannerPro
       const devices = await Html5Qrcode.getCameras();
 
       if (!devices || devices.length === 0) {
-        setError('Nenhuma câmera encontrada no dispositivo');
+        setError('Nenhuma câmera encontrada no dispositivo. Verifique se permitiu o acesso à câmera.');
         setScanning(false);
         return;
       }
@@ -116,13 +124,33 @@ export function BarcodeScanner({ open, onOpenChange, onScan }: BarcodeScannerPro
       console.error('Erro ao iniciar scanner:', err);
 
       if (err instanceof Error) {
-        if (err.message.includes('Permission')) {
-          setError('Permissão de câmera negada. Por favor, permita o acesso à câmera nas configurações do navegador.');
+        if (err.message.includes('Permission') || err.message.includes('permission')) {
+          setError(
+            'Permissão de câmera negada.\n\n' +
+            '📱 Para permitir:\n' +
+            '1. Toque no ícone 🔒 ou ⓘ na barra de endereço\n' +
+            '2. Selecione "Permissões do site"\n' +
+            '3. Permita o acesso à câmera\n' +
+            '4. Recarregue a página'
+          );
+        } else if (err.message.includes('NotAllowed')) {
+          setError(
+            'Acesso à câmera bloqueado.\n\n' +
+            'Nas configurações do navegador:\n' +
+            'Chrome: chrome://settings/content/camera\n' +
+            'Permita o acesso para este site.'
+          );
         } else {
           setError(err.message);
         }
       } else {
-        setError('Erro ao iniciar scanner. Verifique se o navegador tem permissão para acessar a câmera.');
+        setError(
+          'Erro ao iniciar scanner.\n\n' +
+          'Verifique se:\n' +
+          '• Está usando HTTPS (ou localhost)\n' +
+          '• Permitiu acesso à câmera\n' +
+          '• Nenhum outro app está usando a câmera'
+        );
       }
 
       setScanning(false);
@@ -171,7 +199,22 @@ export function BarcodeScanner({ open, onOpenChange, onScan }: BarcodeScannerPro
           {error && (
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
-              <AlertDescription>{error}</AlertDescription>
+              <AlertDescription className="whitespace-pre-line">
+                {error}
+                <div className="mt-3">
+                  <Button
+                    onClick={() => {
+                      setError(null);
+                      startScanner();
+                    }}
+                    size="sm"
+                    variant="outline"
+                    className="w-full"
+                  >
+                    Tentar Novamente
+                  </Button>
+                </div>
+              </AlertDescription>
             </Alert>
           )}
 
