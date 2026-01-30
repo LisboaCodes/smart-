@@ -29,11 +29,11 @@ import { Loader2 } from 'lucide-react'
 
 const productSchema = z.object({
   sku: z.string().min(1, 'SKU é obrigatório'),
-  barcode: z.string().optional(),
+  barcode: z.string().optional().transform(val => val || undefined),
   name: z.string().min(1, 'Nome é obrigatório'),
-  description: z.string().optional(),
+  description: z.string().optional().transform(val => val || undefined),
   categoryId: z.string().min(1, 'Categoria é obrigatória'),
-  supplierId: z.string().optional(),
+  supplierId: z.string().optional().transform(val => val || undefined),
   costPrice: z.coerce.number().min(0, 'Custo deve ser maior ou igual a 0'),
   salePrice: z.coerce.number().min(0.01, 'Preço de venda é obrigatório'),
   stock: z.coerce.number().int().min(0, 'Estoque deve ser maior ou igual a 0'),
@@ -240,14 +240,14 @@ export function ProductDialog({
             <div className="space-y-2">
               <Label htmlFor="supplierId">Fornecedor</Label>
               <Select
-                value={watch('supplierId') || ''}
-                onValueChange={(value) => setValue('supplierId', value)}
+                value={watch('supplierId') || 'none'}
+                onValueChange={(value) => setValue('supplierId', value === 'none' ? '' : value)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione..." />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Nenhum</SelectItem>
+                  <SelectItem value="none">Nenhum</SelectItem>
                   {suppliers.map((sup) => (
                     <SelectItem key={sup.id} value={sup.id}>
                       {sup.name}
