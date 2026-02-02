@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Card, CardContent } from '@/components/ui/card'
@@ -24,7 +25,8 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product }: ProductCardProps) {
-  const imageUrl = product.imageUrl || '/placeholder.svg'
+  const [imageError, setImageError] = useState(false)
+  const imageUrl = imageError || !product.imageUrl ? '/placeholder.svg' : product.imageUrl
   const hasPromo = product.promoPrice && product.promoEndDate && new Date() <= new Date(product.promoEndDate)
   const price = hasPromo ? Number(product.promoPrice) : Number(product.salePrice)
   const originalPrice = hasPromo ? Number(product.salePrice) : undefined
@@ -39,6 +41,7 @@ export function ProductCard({ product }: ProductCardProps) {
             fill
             className="object-cover transition-transform group-hover:scale-105"
             unoptimized={imageUrl === '/placeholder.svg'}
+            onError={() => setImageError(true)}
           />
           {hasPromo && (
             <Badge className="absolute top-2 left-2 bg-red-500">Promocao</Badge>

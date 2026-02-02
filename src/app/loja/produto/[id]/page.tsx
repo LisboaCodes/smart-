@@ -1,5 +1,4 @@
 import { notFound } from 'next/navigation'
-import Image from 'next/image'
 import Link from 'next/link'
 import { Metadata } from 'next'
 import { getStoreProductById, getRelatedStoreProducts } from '@/lib/db'
@@ -8,6 +7,7 @@ import { Separator } from '@/components/ui/separator'
 import { formatCurrency } from '@/lib/utils'
 import { ProductActions } from './product-actions'
 import { ProductCard } from '@/components/loja/product-card'
+import { ProductImage } from '@/components/loja/product-image'
 import {
   ChevronLeft,
   Package,
@@ -114,13 +114,12 @@ export default async function ProductPage({
         {/* Imagens */}
         <div className="space-y-4">
           <div className="relative aspect-square rounded-lg overflow-hidden bg-gradient-to-br from-gold-50 to-gold-100 border border-gold-200">
-            <Image
+            <ProductImage
               src={mainImage}
               alt={product.name}
               fill
               className="object-cover"
               priority
-              unoptimized={mainImage === '/placeholder.svg'}
             />
             {hasPromo && (
               <Badge className="absolute top-4 left-4 bg-red-500 text-lg px-3 py-1">
@@ -137,7 +136,7 @@ export default async function ProductPage({
                   key={image.id}
                   className="relative w-20 h-20 flex-shrink-0 rounded-md overflow-hidden border-2 border-gold-200 hover:border-gold-500 cursor-pointer transition-colors"
                 >
-                  <Image
+                  <ProductImage
                     src={image.url}
                     alt={`${product.name} - Imagem ${idx + 1}`}
                     fill
