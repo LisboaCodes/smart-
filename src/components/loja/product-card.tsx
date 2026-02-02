@@ -24,7 +24,7 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product }: ProductCardProps) {
-  const imageUrl = product.imageUrl || '/placeholder.jpg'
+  const imageUrl = product.imageUrl || '/placeholder.svg'
   const hasPromo = product.promoPrice && product.promoEndDate && new Date() <= new Date(product.promoEndDate)
   const price = hasPromo ? Number(product.promoPrice) : Number(product.salePrice)
   const originalPrice = hasPromo ? Number(product.salePrice) : undefined
@@ -33,18 +33,13 @@ export function ProductCard({ product }: ProductCardProps) {
     <Card className="group overflow-hidden border-gold-200 hover:border-gold-400 hover:shadow-lg transition-all">
       <Link href={`/loja/produto/${product.id}`}>
         <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-gold-50 to-gold-100">
-          {product.imageUrl ? (
-            <Image
-              src={imageUrl}
-              alt={product.name}
-              fill
-              className="object-cover transition-transform group-hover:scale-105"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center">
-              <ShoppingCart className="h-12 w-12 text-gold-300" />
-            </div>
-          )}
+          <Image
+            src={imageUrl}
+            alt={product.name}
+            fill
+            className="object-cover transition-transform group-hover:scale-105"
+            unoptimized={imageUrl === '/placeholder.svg'}
+          />
           {hasPromo && (
             <Badge className="absolute top-2 left-2 bg-red-500">Promocao</Badge>
           )}

@@ -33,8 +33,8 @@ export async function generateMetadata({
     product.promoEndDate &&
     new Date() <= new Date(product.promoEndDate)
   const price = hasPromo ? Number(product.promoPrice) : Number(product.salePrice)
-  const mainImage = product.images?.[0]?.url || '/logo.png'
-  const imageUrl = mainImage.startsWith('http') ? mainImage : `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3001'}${mainImage}`
+  const mainImage = product.images?.[0]?.url || '/placeholder.svg'
+  const imageUrl = mainImage.startsWith('http') ? mainImage : `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3003'}${mainImage}`
 
   return {
     title: `${product.name} - Smart+ Acessórios`,
@@ -89,7 +89,7 @@ export default async function ProductPage({
       )
     : 0
 
-  const mainImage = product.images?.[0]?.url || '/placeholder.jpg'
+  const mainImage = product.images?.[0]?.url || '/placeholder.svg'
 
   return (
     <div className="container py-8">
@@ -114,19 +114,14 @@ export default async function ProductPage({
         {/* Imagens */}
         <div className="space-y-4">
           <div className="relative aspect-square rounded-lg overflow-hidden bg-gradient-to-br from-gold-50 to-gold-100 border border-gold-200">
-            {product.images?.[0] ? (
-              <Image
-                src={mainImage}
-                alt={product.name}
-                fill
-                className="object-cover"
-                priority
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center">
-                <Package className="h-24 w-24 text-gold-300" />
-              </div>
-            )}
+            <Image
+              src={mainImage}
+              alt={product.name}
+              fill
+              className="object-cover"
+              priority
+              unoptimized={mainImage === '/placeholder.svg'}
+            />
             {hasPromo && (
               <Badge className="absolute top-4 left-4 bg-red-500 text-lg px-3 py-1">
                 -{discount}%

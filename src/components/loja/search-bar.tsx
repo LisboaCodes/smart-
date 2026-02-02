@@ -14,12 +14,17 @@ export function SearchBar() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
 
-    const params = new URLSearchParams(searchParams.toString());
+    const params = new URLSearchParams();
 
-    if (search) {
-      params.set('busca', search);
+    if (search.trim()) {
+      params.set('busca', search.trim());
+      // Remove categoria ao buscar
     } else {
-      params.delete('busca');
+      // Se busca vazia, mantém categoria
+      const categoria = searchParams.get('categoria');
+      if (categoria) {
+        params.set('categoria', categoria);
+      }
     }
 
     router.push(`/loja?${params.toString()}`);
@@ -27,8 +32,11 @@ export function SearchBar() {
 
   const handleClear = () => {
     setSearch('');
-    const params = new URLSearchParams(searchParams.toString());
-    params.delete('busca');
+    const params = new URLSearchParams();
+    const categoria = searchParams.get('categoria');
+    if (categoria) {
+      params.set('categoria', categoria);
+    }
     router.push(`/loja?${params.toString()}`);
   };
 

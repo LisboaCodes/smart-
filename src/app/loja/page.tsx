@@ -86,37 +86,39 @@ export default async function LojaPage({
       <section className="mb-8 space-y-4">
         <SearchBar />
 
-        <div className="flex gap-2 flex-wrap">
-          <Link href="/loja">
-            <Badge
-              variant={!searchParams.categoria ? 'default' : 'outline'}
-              className={`cursor-pointer text-sm py-1 px-3 ${!searchParams.categoria ? 'bg-gold-600 hover:bg-gold-700' : 'border-gold-400 text-gold-700 hover:bg-gold-50 dark:border-gold-600 dark:text-gold-400 dark:hover:bg-gold-950'}`}
-            >
-              Todos
-            </Badge>
-          </Link>
-          {categories.map((cat: any) => (
-            <Link
-              key={cat.id}
-              href={`/loja?categoria=${cat.name.toLowerCase()}`}
-            >
+        {!searchParams.busca && (
+          <div className="flex gap-2 flex-wrap">
+            <Link href="/loja">
               <Badge
-                variant={
-                  searchParams.categoria?.toLowerCase() === cat.name.toLowerCase()
-                    ? 'default'
-                    : 'outline'
-                }
-                className={`cursor-pointer text-sm py-1 px-3 ${searchParams.categoria?.toLowerCase() === cat.name.toLowerCase() ? 'bg-gold-600 hover:bg-gold-700' : 'border-gold-400 text-gold-700 hover:bg-gold-50 dark:border-gold-600 dark:text-gold-400 dark:hover:bg-gold-950'}`}
+                variant={!searchParams.categoria ? 'default' : 'outline'}
+                className={`cursor-pointer text-sm py-1 px-3 ${!searchParams.categoria ? 'bg-gold-600 hover:bg-gold-700' : 'border-gold-400 text-gold-700 hover:bg-gold-50 dark:border-gold-600 dark:text-gold-400 dark:hover:bg-gold-950'}`}
               >
-                {cat.name} ({cat.productCount})
+                Todos
               </Badge>
             </Link>
-          ))}
-        </div>
+            {categories.map((cat: any) => (
+              <Link
+                key={cat.id}
+                href={`/loja?categoria=${cat.name.toLowerCase()}`}
+              >
+                <Badge
+                  variant={
+                    searchParams.categoria?.toLowerCase() === cat.name.toLowerCase()
+                      ? 'default'
+                      : 'outline'
+                  }
+                  className={`cursor-pointer text-sm py-1 px-3 ${searchParams.categoria?.toLowerCase() === cat.name.toLowerCase() ? 'bg-gold-600 hover:bg-gold-700' : 'border-gold-400 text-gold-700 hover:bg-gold-50 dark:border-gold-600 dark:text-gold-400 dark:hover:bg-gold-950'}`}
+                >
+                  {cat.name} ({cat.productCount})
+                </Badge>
+              </Link>
+            ))}
+          </div>
+        )}
       </section>
 
       {/* Destaques */}
-      {!searchParams.categoria && featured.length > 0 && (
+      {!searchParams.categoria && !searchParams.busca && featured.length > 0 && (
         <section className="mb-12">
           <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
             <Sparkles className="h-6 w-6 text-gold-500" />
