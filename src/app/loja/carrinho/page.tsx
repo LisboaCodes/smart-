@@ -1,11 +1,11 @@
 'use client'
 
 import Link from 'next/link'
-import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Separator } from '@/components/ui/separator'
+import { ProductImage } from '@/components/loja/product-image'
 import { useCart } from '@/contexts/cart-context'
 import { formatCurrency } from '@/lib/utils'
 import {
@@ -78,19 +78,13 @@ export default function CarrinhoPage() {
             <Card key={`${item.id}-${item.variationId || ''}`}>
               <CardContent className="p-4">
                 <div className="flex gap-4">
-                  <div className="relative w-24 h-24 rounded-md overflow-hidden bg-muted flex-shrink-0">
-                    {item.image ? (
-                      <Image
-                        src={item.image}
-                        alt={item.name}
-                        fill
-                        className="object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <Package className="h-8 w-8 text-muted-foreground/20" />
-                      </div>
-                    )}
+                  <div className="relative w-24 h-24 rounded-md overflow-hidden bg-gradient-to-br from-gold-50 to-gold-100 border border-gold-200 flex-shrink-0">
+                    <ProductImage
+                      src={item.image || '/placeholder.svg'}
+                      alt={item.name}
+                      fill
+                      className="object-cover"
+                    />
                   </div>
 
                   <div className="flex-1">

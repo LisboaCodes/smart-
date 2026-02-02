@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -23,6 +23,7 @@ import {
 export default function ContaPage() {
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [customerData, setCustomerData] = useState<any>(null)
 
@@ -54,6 +55,7 @@ export default function ContaPage() {
         setIsLoggedIn(true)
         setCustomerData(data.customer)
         localStorage.setItem('customerToken', data.token)
+        localStorage.setItem('customerData', JSON.stringify(data.customer))
         toast({ title: 'Login realizado com sucesso!' })
       } else {
         toast({
@@ -97,6 +99,7 @@ export default function ContaPage() {
         setIsLoggedIn(true)
         setCustomerData(data.customer)
         localStorage.setItem('customerToken', data.token)
+        localStorage.setItem('customerData', JSON.stringify(data.customer))
         toast({ title: 'Conta criada com sucesso!' })
       } else {
         toast({
@@ -120,7 +123,40 @@ export default function ContaPage() {
     setIsLoggedIn(false)
     setCustomerData(null)
     localStorage.removeItem('customerToken')
+    localStorage.removeItem('customerData')
     toast({ title: 'Voce saiu da sua conta' })
+  }
+
+  // Check if user is already logged in on mount
+  useEffect(() => {
+    const checkAuth = async () => {
+      const token = localStorage.getItem('customerToken')
+      const storedCustomer = localStorage.getItem('customerData')
+
+      if (token && storedCustomer) {
+        try {
+          const customer = JSON.parse(storedCustomer)
+          setIsLoggedIn(true)
+          setCustomerData(customer)
+        } catch (error) {
+          console.error('Error restoring session:', error)
+          localStorage.removeItem('customerToken')
+          localStorage.removeItem('customerData')
+        }
+      }
+      setIsCheckingAuth(false)
+    }
+
+    checkAuth()
+  }, [])
+
+  // Show loading while checking auth
+  if (isCheckingAuth) {
+    return (
+      <div className="container py-16 flex justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    )
   }
 
   // Logged in view
