@@ -91,8 +91,8 @@ export async function saveProductImage(
     // Salvar arquivo
     await writeFile(filepath, optimizedBuffer);
 
-    // Retornar URL relativa
-    const url = `/uploads/produtos/${productId}/${filename}`;
+    // Retornar URL relativa - use API route for standalone compatibility
+    const url = `/api/uploads/produtos/${productId}/${filename}`;
 
     return {
       success: true,
@@ -113,8 +113,9 @@ export async function saveProductImage(
  */
 export async function deleteProductImage(imagePath: string): Promise<boolean> {
   try {
-    // imagePath vem como /uploads/produtos/[id]/[filename]
-    const filepath = path.join(process.cwd(), 'public', imagePath);
+    // imagePath vem como /api/uploads/produtos/[id]/[filename] ou /uploads/produtos/[id]/[filename]
+    const cleanPath = imagePath.replace('/api/uploads/', '/uploads/')
+    const filepath = path.join(process.cwd(), 'public', cleanPath);
 
     if (existsSync(filepath)) {
       await unlink(filepath);
