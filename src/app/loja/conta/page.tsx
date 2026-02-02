@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
+import { formatPhoneNumber, formatPhoneDisplay } from '@/lib/phone'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -87,10 +88,16 @@ export default function ContaPage() {
 
     setIsLoading(true)
     try {
+      // Format phone before sending
+      const formattedData = {
+        ...registerData,
+        phone: registerData.phone ? formatPhoneNumber(registerData.phone) : null,
+      }
+
       const response = await fetch('/api/clientes/auth', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'register', ...registerData }),
+        body: JSON.stringify({ action: 'register', ...formattedData }),
       })
 
       const data = await response.json()
@@ -225,7 +232,7 @@ export default function ContaPage() {
               </div>
               <div className="space-y-2">
                 <Label>Telefone</Label>
-                <Input value={customerData.phone || ''} disabled />
+                <Input value={customerData.phone ? formatPhoneDisplay(customerData.phone) : ''} disabled />
               </div>
               <div className="space-y-2">
                 <Label>CPF</Label>
@@ -340,10 +347,13 @@ export default function ContaPage() {
                     <Label htmlFor="register-phone">Telefone</Label>
                     <Input
                       id="register-phone"
-                      placeholder="(79) 99999-9999"
+                      placeholder="+55 (79) 99999-9999"
                       value={registerData.phone}
                       onChange={(e) => setRegisterData(prev => ({ ...prev, phone: e.target.value }))}
                     />
+                    <p className="text-xs text-muted-foreground">
+                      Formato: +55 (DDD) 99999-9999
+                    </p>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="register-cpf">CPF</Label>

@@ -19,17 +19,37 @@ import {
   Tag,
 } from 'lucide-react'
 import { useState } from 'react'
+import { calculateShipping, formatZipCode, isValidZipCode } from '@/lib/shipping'
 
 export default function CarrinhoPage() {
   const { items, updateQuantity, removeItem, getSubtotal } = useCart()
   const [couponCode, setCouponCode] = useState('')
   const [couponDiscount, setCouponDiscount] = useState(0)
   const [couponError, setCouponError] = useState('')
+  const [zipCode, setZipCode] = useState('')
+  const [shippingCost, setShippingCost] = useState<number | null>(null)
+  const [zipError, setZipError] = useState('')
 
   const subtotal = getSubtotal()
-  const shipping = subtotal > 200 ? 0 : 15
+  const shipping = shippingCost !== null ? shippingCost : 0
   const discount = couponDiscount
   const total = subtotal + shipping - discount
+
+  const handleCalculateShipping = () => {
+    if (!zipCode) {
+      setZipError('Digite o CEP')
+      return
+    }
+
+    if (!isValidZipCode(zipCode)) {
+      setZipError('CEP inválido')
+      return
+    }
+
+    const cost = calculateShipping(zipCode)
+    setShippingCost(cost)
+    setZipError('')
+  }
 
   const handleApplyCoupon = () => {
     // TODO: Validate coupon against API
@@ -166,21 +186,46 @@ export default function CarrinhoPage() {
                 <span className="text-muted-foreground">Subtotal</span>
                 <span>{formatCurrency(subtotal)}</span>
               </div>
+
+              {/* CEP Input */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Calcular Frete</label>
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="00000-000"
+                    value={zipCode}
+                    onChange={(e) => {
+                      setZipCode(e.target.value)
+                      setZipError('')
+                    }}
+                    maxLength={9}
+                  />
+                  <Button variant="outline" onClick={handleCalculateShipping}>
+                    Calcular
+                  </Button>
+                </div>
+                {zipError && (
+                  <p className="text-xs text-destructive">{zipError}</p>
+                )}
+                {shippingCost !== null && !zipError && (
+                  <p className="text-xs text-green-600">
+                    {shippingCost === 0 ? 'Frete grátis!' : `Frete: ${formatCurrency(shippingCost)}`}
+                  </p>
+                )}
+              </div>
+
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Frete</span>
                 <span>
-                  {shipping === 0 ? (
-                    <span className="text-green-600">Gratis</span>
+                  {shippingCost === null ? (
+                    <span className="text-xs text-muted-foreground">Calcule acima</span>
+                  ) : shippingCost === 0 ? (
+                    <span className="text-green-600">Grátis</span>
                   ) : (
-                    formatCurrency(shipping)
+                    formatCurrency(shippingCost)
                   )}
                 </span>
               </div>
-              {subtotal < 200 && (
-                <p className="text-xs text-muted-foreground">
-                  Frete gratis para compras acima de R$ 200,00
-                </p>
-              )}
               {discount > 0 && (
                 <div className="flex justify-between text-green-600">
                   <span>Desconto</span>

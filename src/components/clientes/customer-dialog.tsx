@@ -25,6 +25,7 @@ import {
 } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { useToast } from '@/hooks/use-toast'
+import { formatPhoneNumber } from '@/lib/phone'
 import { Loader2 } from 'lucide-react'
 
 const customerSchema = z.object({
@@ -132,13 +133,20 @@ export function CustomerDialog({
   const onSubmit = async (data: CustomerFormData) => {
     setLoading(true)
     try {
+      // Format phone numbers before sending
+      const formattedData = {
+        ...data,
+        phone: data.phone ? formatPhoneNumber(data.phone) : null,
+        whatsapp: data.whatsapp ? formatPhoneNumber(data.whatsapp) : null,
+      }
+
       const url = customer ? `/api/clientes/${customer.id}` : '/api/clientes'
       const method = customer ? 'PUT' : 'POST'
 
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+        body: JSON.stringify(formattedData),
       })
 
       if (res.ok) {
@@ -206,15 +214,17 @@ export function CustomerDialog({
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="phone">Telefone</Label>
-              <Input id="phone" {...register('phone')} placeholder="(00) 00000-0000" />
+              <Input id="phone" {...register('phone')} placeholder="+55 (79) 99999-9999" />
+              <p className="text-xs text-muted-foreground">Formato: +55 (DDD) Número</p>
             </div>
             <div className="space-y-2">
               <Label htmlFor="whatsapp">WhatsApp</Label>
               <Input
                 id="whatsapp"
                 {...register('whatsapp')}
-                placeholder="5500000000000"
+                placeholder="+55 (79) 99999-9999"
               />
+              <p className="text-xs text-muted-foreground">Formato: +55 (DDD) Número</p>
             </div>
           </div>
 
