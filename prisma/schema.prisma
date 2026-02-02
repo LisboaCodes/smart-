@@ -228,8 +228,36 @@ model Customer {
   sales         Sale[]
   orders        Order[]
   carts         Cart[]
+  addresses     Address[]
 
   @@map("customers")
+}
+
+// Endereços de entrega dos clientes
+model Address {
+  id          String   @id @default(uuid())
+  customerId  String
+  customer    Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  label       String   // Ex: "Casa", "Trabalho", "Apartamento"
+  recipientName String // Nome do destinatário
+  zipCode     String   // CEP
+  street      String   // Rua/Avenida
+  number      String   // Número
+  complement  String?  // Complemento (apto, bloco, etc)
+  neighborhood String  // Bairro
+  city        String   // Cidade
+  state       String   // Estado (UF)
+  reference   String?  // Ponto de referência
+
+  isDefault   Boolean  @default(false) // Endereço padrão
+  active      Boolean  @default(true)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("addresses")
+  @@index([customerId])
 }
 
 // ==================== VENDAS E PDV ====================
