@@ -227,6 +227,22 @@ model Customer {
   @@map("customers")
 }
 
+// Clientes da loja online (com autenticação)
+model StoreCustomer {
+  id          String    @id @default(uuid())
+  name        String
+  email       String    @unique
+  phone       String?
+  cpf         String?
+  password    String    // Hash bcrypt
+  lastLogin   DateTime?
+  active      Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("store_customers")
+}
+
 // ==================== VENDAS E PDV ====================
 
 model PaymentMethod {
