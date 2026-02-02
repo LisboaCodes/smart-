@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { useState, useEffect } from 'react'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
@@ -20,14 +20,33 @@ import {
 
 export function StoreHeader() {
   const [menuOpen, setMenuOpen] = useState(false)
+  const [search, setSearch] = useState('')
   const { getItemCount } = useCart()
   const cartCount = getItemCount()
   const pathname = usePathname()
+  const router = useRouter()
 
   // Fechar menu quando a rota mudar
   useEffect(() => {
     setMenuOpen(false)
   }, [pathname])
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (search.trim()) {
+      router.push(`/loja?busca=${encodeURIComponent(search.trim())}`)
+      setSearch('')
+      setMenuOpen(false)
+    }
+  }
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && search.trim()) {
+      router.push(`/loja?busca=${encodeURIComponent(search.trim())}`)
+      setSearch('')
+      setMenuOpen(false)
+    }
+  }
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -99,13 +118,17 @@ export function StoreHeader() {
 
         <div className="flex items-center gap-4">
           {/* Search */}
-          <div className="hidden md:flex relative w-64">
+          <form onSubmit={handleSearch} className="hidden md:flex relative w-64">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
+              type="text"
               placeholder="Buscar produtos..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              onKeyPress={handleKeyPress}
               className="pl-9 border-gold-300 focus:border-gold-500 focus:ring-gold-500"
             />
-          </div>
+          </form>
 
           {/* Instagram */}
           <Button variant="ghost" size="icon" className="hover:text-gold-600" asChild>
@@ -147,13 +170,17 @@ export function StoreHeader() {
       {menuOpen && (
         <div className="md:hidden border-t">
           <nav className="container py-4 flex flex-col gap-2">
-            <div className="relative mb-2">
+            <form onSubmit={handleSearch} className="relative mb-2">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
+                type="text"
                 placeholder="Buscar produtos..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                onKeyPress={handleKeyPress}
                 className="pl-9 border-gold-300 focus:border-gold-500"
               />
-            </div>
+            </form>
             <Link
               href="/loja"
               className="p-2 hover:bg-gold-50 hover:text-gold-700 rounded-md"
