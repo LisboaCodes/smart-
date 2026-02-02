@@ -217,6 +217,11 @@ model Customer {
   lastPurchase  DateTime?
   active        Boolean      @default(true)
   acceptsMarketing Boolean   @default(true)
+
+  // Campos para autenticação na loja online
+  password      String?      // Hash bcrypt - opcional, só para quem cria conta online
+  lastLogin     DateTime?    // Último login na loja online
+
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
 
@@ -225,22 +230,6 @@ model Customer {
   carts         Cart[]
 
   @@map("customers")
-}
-
-// Clientes da loja online (com autenticação)
-model StoreCustomer {
-  id          String    @id @default(uuid())
-  name        String
-  email       String    @unique
-  phone       String?
-  cpf         String?
-  password    String    // Hash bcrypt
-  lastLogin   DateTime?
-  active      Boolean   @default(true)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-
-  @@map("store_customers")
 }
 
 // ==================== VENDAS E PDV ====================

@@ -12,8 +12,8 @@ export async function POST(request: NextRequest) {
       const { email, password } = body
 
       const customer = await queryOne(`
-        SELECT * FROM smartloja.store_customers
-        WHERE email = $1 AND active = true
+        SELECT * FROM smartloja.customers
+        WHERE email = $1 AND active = true AND password IS NOT NULL
       `, [email.toLowerCase()])
 
       if (!customer) {
@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
 
       // Update last login
       await query(`
-        UPDATE smartloja.store_customers
+        UPDATE smartloja.customers
         SET "lastLogin" = NOW()
         WHERE id = $1
       `, [customer.id])
@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
 
       // Check if email already exists
       const existing = await queryOne(`
-        SELECT id FROM smartloja.store_customers WHERE email = $1
+        SELECT id FROM smartloja.customers WHERE email = $1
       `, [email.toLowerCase()])
 
       if (existing) {
@@ -64,10 +64,10 @@ export async function POST(request: NextRequest) {
       const hashedPassword = await bcrypt.hash(password, 10)
 
       const customer = await queryOne(`
-        INSERT INTO smartloja.store_customers (
-          id, name, email, phone, cpf, password, active, "createdAt", "updatedAt"
+        INSERT INTO smartloja.customers (
+          id, name, email, phone, cpf, password, active, type, "totalPurchases", "acceptsMarketing", "createdAt", "updatedAt"
         ) VALUES (
-          $1, $2, $3, $4, $5, $6, true, NOW(), NOW()
+          $1, $2, $3, $4, $5, $6, true, 'REGULAR', 0, true, NOW(), NOW()
         )
         RETURNING id, name, email, phone, cpf
       `, [
