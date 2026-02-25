@@ -1,14 +1,26 @@
-import { writeFile, unlink, mkdir } from 'fs/promises';
-import { existsSync } from 'fs';
-import path from 'path';
+import { S3Client, PutObjectCommand, DeleteObjectCommand, ListObjectsV2Command, DeleteObjectsCommand } from '@aws-sdk/client-s3';
 import { v4 as uuidv4 } from 'uuid';
 
-const UPLOAD_DIR = path.join(process.cwd(), 'public', 'uploads', 'produtos');
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
 const MAX_WIDTH = 1200;
 const MAX_HEIGHT = 1200;
 const QUALITY = 85;
+
+const S3_BUCKET = process.env.AWS_S3_BUCKET || 'creativenext';
+const S3_REGION = process.env.AWS_REGION || 'us-east-1';
+
+const s3Client = new S3Client({
+  region: S3_REGION,
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
+  },
+});
+
+function getPublicUrl(key: string): string {
+  return `https://${S3_BUCKET}.s3.${S3_REGION}.amazonaws.com/${key}`;
+}
 
 export interface UploadResult {
   url: string;
@@ -16,9 +28,6 @@ export interface UploadResult {
   error?: string;
 }
 
-/**
- * Valida um arquivo de imagem
- */
 export function validateImageFile(file: File): { valid: boolean; error?: string } {
   if (!ALLOWED_TYPES.includes(file.type)) {
     return {
@@ -37,11 +46,7 @@ export function validateImageFile(file: File): { valid: boolean; error?: string 
   return { valid: true };
 }
 
-/**
- * Otimiza uma imagem usando Sharp
- */
 export async function optimizeImage(buffer: Buffer): Promise<Buffer> {
-  // Dynamic import to avoid build-time errors on ARM64
   const sharp = (await import('sharp')).default;
 
   return await sharp(buffer)
@@ -53,51 +58,34 @@ export async function optimizeImage(buffer: Buffer): Promise<Buffer> {
     .toBuffer();
 }
 
-/**
- * Salva uma imagem de produto no filesystem
- */
 export async function saveProductImage(
   file: File,
   productId: string
 ): Promise<UploadResult> {
   try {
-    // Validar arquivo
     const validation = validateImageFile(file);
     if (!validation.valid) {
-      return {
-        success: false,
-        url: '',
-        error: validation.error
-      };
+      return { success: false, url: '', error: validation.error };
     }
 
-    // Criar diretório do produto se não existir
-    const productDir = path.join(UPLOAD_DIR, productId);
-    if (!existsSync(productDir)) {
-      await mkdir(productDir, { recursive: true });
-    }
-
-    // Converter File para Buffer
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    // Otimizar imagem
     const optimizedBuffer = await optimizeImage(buffer);
 
-    // Gerar nome único do arquivo
     const filename = `${uuidv4()}.webp`;
-    const filepath = path.join(productDir, filename);
+    const key = `produtos/${productId}/${filename}`;
 
-    // Salvar arquivo
-    await writeFile(filepath, optimizedBuffer);
+    await s3Client.send(new PutObjectCommand({
+      Bucket: S3_BUCKET,
+      Key: key,
+      Body: optimizedBuffer,
+      ContentType: 'image/webp',
+    }));
 
-    // Retornar URL relativa - use API route for standalone compatibility
-    const url = `/api/uploads/produtos/${productId}/${filename}`;
+    const url = getPublicUrl(key);
 
-    return {
-      success: true,
-      url
-    };
+    return { success: true, url };
   } catch (error) {
     console.error('Erro ao salvar imagem:', error);
     return {
@@ -108,47 +96,51 @@ export async function saveProductImage(
   }
 }
 
-/**
- * Remove uma imagem do filesystem
- */
 export async function deleteProductImage(imagePath: string): Promise<boolean> {
   try {
-    // imagePath vem como /api/uploads/produtos/[id]/[filename] ou /uploads/produtos/[id]/[filename]
-    const cleanPath = imagePath.replace('/api/uploads/', '/uploads/')
-    const filepath = path.join(process.cwd(), 'public', cleanPath);
+    // Extrair a key do S3 a partir da URL
+    let key = imagePath;
 
-    if (existsSync(filepath)) {
-      await unlink(filepath);
-      return true;
+    // Se for URL completa do S3, extrair o path
+    if (imagePath.includes('.amazonaws.com/')) {
+      key = imagePath.split('.amazonaws.com/')[1];
+    }
+    // Se for URL antiga do filesystem, converter para key S3
+    else if (imagePath.startsWith('/api/uploads/')) {
+      key = imagePath.replace('/api/uploads/', '');
+    } else if (imagePath.startsWith('/uploads/')) {
+      key = imagePath.replace('/uploads/', '');
     }
 
-    return false;
+    await s3Client.send(new DeleteObjectCommand({
+      Bucket: S3_BUCKET,
+      Key: key,
+    }));
+
+    return true;
   } catch (error) {
     console.error('Erro ao deletar imagem:', error);
     return false;
   }
 }
 
-/**
- * Remove todas as imagens de um produto
- */
 export async function deleteProductImages(productId: string): Promise<void> {
   try {
-    const productDir = path.join(UPLOAD_DIR, productId);
+    const prefix = `produtos/${productId}/`;
 
-    if (existsSync(productDir)) {
-      const { readdir } = await import('fs/promises');
-      const files = await readdir(productDir);
+    const listResult = await s3Client.send(new ListObjectsV2Command({
+      Bucket: S3_BUCKET,
+      Prefix: prefix,
+    }));
 
-      await Promise.all(
-        files.map(file =>
-          unlink(path.join(productDir, file)).catch(console.error)
-        )
-      );
+    if (!listResult.Contents || listResult.Contents.length === 0) return;
 
-      // Remove o diretório vazio
-      await import('fs/promises').then(fs => fs.rmdir(productDir).catch(console.error));
-    }
+    await s3Client.send(new DeleteObjectsCommand({
+      Bucket: S3_BUCKET,
+      Delete: {
+        Objects: listResult.Contents.map(obj => ({ Key: obj.Key })),
+      },
+    }));
   } catch (error) {
     console.error('Erro ao deletar imagens do produto:', error);
   }

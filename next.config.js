@@ -9,7 +9,17 @@ const withPWA = require('next-pwa')({
 const nextConfig = {
   output: 'standalone',
   images: {
-    unoptimized: true, // Disable optimization for production - serve images directly
+    unoptimized: true,
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '*.s3.us-east-1.amazonaws.com',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.s3.amazonaws.com',
+      },
+    ],
   },
 }
 
