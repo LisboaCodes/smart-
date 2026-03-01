@@ -30,6 +30,9 @@ export function ProductCard({ product }: ProductCardProps) {
   const hasPromo = product.promoPrice && product.promoEndDate && new Date() <= new Date(product.promoEndDate)
   const price = hasPromo ? Number(product.promoPrice) : Number(product.salePrice)
   const originalPrice = hasPromo ? Number(product.salePrice) : undefined
+  const discount = hasPromo && originalPrice
+    ? Math.round(((originalPrice - price) / originalPrice) * 100)
+    : 0
 
   return (
     <Card className="group overflow-hidden border-gold-200 hover:border-gold-400 hover:shadow-lg transition-all">
@@ -43,8 +46,10 @@ export function ProductCard({ product }: ProductCardProps) {
             unoptimized={imageUrl === '/placeholder.svg'}
             onError={() => setImageError(true)}
           />
-          {hasPromo && (
-            <Badge className="absolute top-2 left-2 bg-red-500">Promocao</Badge>
+          {hasPromo && discount > 0 && (
+            <Badge className="absolute top-2 left-2 bg-red-500 text-white font-bold">
+              -{discount}%
+            </Badge>
           )}
           {product.featured && (
             <Badge className="absolute top-2 right-2 bg-gold-500 text-white hover:bg-gold-600">
@@ -59,23 +64,26 @@ export function ProductCard({ product }: ProductCardProps) {
           )}
         </div>
       </Link>
-      <CardContent className="p-4">
+      <CardContent className="p-3 sm:p-4">
         <Link href={`/loja/produto/${product.id}`}>
           <p className="text-xs text-gold-600 dark:text-gold-400 mb-1">
             {product.categoryName}
           </p>
-          <h3 className="font-medium line-clamp-2 text-gray-900 dark:text-gray-100 group-hover:text-gold-700 dark:group-hover:text-gold-400 transition-colors">
+          <h3 className="font-medium text-sm sm:text-base line-clamp-2 text-gray-900 dark:text-gray-100 group-hover:text-gold-700 dark:group-hover:text-gold-400 transition-colors">
             {product.name}
           </h3>
-          <div className="mt-2 flex items-center gap-2">
-            <span className="text-lg font-bold text-gold-700 dark:text-gold-400">
-              {formatCurrency(price)}
-            </span>
+          <div className="mt-2">
             {hasPromo && originalPrice && (
-              <span className="text-sm text-muted-foreground line-through">
+              <span className="text-xs text-muted-foreground line-through block">
                 {formatCurrency(originalPrice)}
               </span>
             )}
+            <span className="text-lg font-bold text-gold-700 dark:text-gold-400">
+              {formatCurrency(price)}
+            </span>
+            <p className="text-[10px] sm:text-xs text-muted-foreground">
+              ou 12x de {formatCurrency(price / 12)}
+            </p>
           </div>
         </Link>
         <AddToCartButton

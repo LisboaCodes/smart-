@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { Instagram, Phone, MapPin, Mail, MessageCircle } from 'lucide-react'
+import { Instagram, MapPin, Mail, MessageCircle } from 'lucide-react'
 import { storeConfig, getWhatsAppLink } from '@/lib/store-config'
 
 export function StoreFooter() {
@@ -9,12 +9,12 @@ export function StoreFooter() {
       {/* Gold gradient top border */}
       <div className="h-1 bg-gradient-to-r from-gold-400 via-gold-500 to-gold-600" />
 
-      <div className="container py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+      <div className="container py-8 sm:py-12">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8">
           {/* Logo e descricao */}
-          <div className="space-y-4">
-            <Link href="/loja" className="flex items-center gap-3">
-              <div className="relative h-12 w-12 overflow-hidden">
+          <div className="col-span-2 md:col-span-1 space-y-3 sm:space-y-4">
+            <Link href="/loja" className="flex items-center gap-2 sm:gap-3">
+              <div className="relative h-10 w-10 sm:h-12 sm:w-12 overflow-hidden">
                 <Image
                   src={storeConfig.logo}
                   alt={storeConfig.logoAlt}
@@ -22,11 +22,11 @@ export function StoreFooter() {
                   className="object-contain"
                 />
               </div>
-              <span className="text-xl font-bold bg-gradient-to-r from-gold-600 via-gold-500 to-gold-400 bg-clip-text text-transparent">
+              <span className="text-lg sm:text-xl font-bold bg-gradient-to-r from-gold-600 via-gold-500 to-gold-400 bg-clip-text text-transparent">
                 {storeConfig.name}
               </span>
             </Link>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-xs sm:text-sm text-muted-foreground">
               {storeConfig.slogan}. Bolsas, joias, semi-joias
               e bijuterias com qualidade e preco justo.
             </p>
@@ -34,8 +34,8 @@ export function StoreFooter() {
 
           {/* Links */}
           <div>
-            <h3 className="font-semibold mb-4 text-gold-700">Categorias</h3>
-            <ul className="space-y-2 text-sm text-muted-foreground">
+            <h3 className="font-semibold mb-3 sm:mb-4 text-sm sm:text-base text-gold-700">Categorias</h3>
+            <ul className="space-y-2 text-xs sm:text-sm text-muted-foreground">
               <li>
                 <Link href="/loja?categoria=bolsas" className="hover:text-gold-600 transition-colors">
                   Bolsas
@@ -59,37 +59,33 @@ export function StoreFooter() {
             </ul>
           </div>
 
-          {/* Atendimento */}
+          {/* Contato */}
           <div>
-            <h3 className="font-semibold mb-4 text-gold-700">Atendimento</h3>
-            <ul className="space-y-2 text-sm text-muted-foreground">
-              <li className="flex items-center gap-2">
-                <Phone className="h-4 w-4 text-gold-500" />
-                {storeConfig.phone}
-              </li>
-              <li className="flex items-center gap-2">
-                <MessageCircle className="h-4 w-4 text-gold-500" />
+            <h3 className="font-semibold mb-3 sm:mb-4 text-sm sm:text-base text-gold-700">Contato</h3>
+            <ul className="space-y-2.5 text-xs sm:text-sm text-muted-foreground">
+              <li>
                 <a
                   href={getWhatsAppLink('Ola! Gostaria de mais informacoes.')}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="hover:text-gold-600 transition-colors"
+                  className="flex items-center gap-2 hover:text-gold-600 transition-colors"
                 >
-                  WhatsApp
+                  <MessageCircle className="h-4 w-4 text-gold-500 flex-shrink-0" />
+                  (79) 99972-5821
                 </a>
               </li>
               <li className="flex items-center gap-2">
-                <Mail className="h-4 w-4 text-gold-500" />
-                {storeConfig.email}
+                <Mail className="h-4 w-4 text-gold-500 flex-shrink-0" />
+                <span className="truncate">{storeConfig.email}</span>
               </li>
-              <li className="flex items-center gap-2">
-                <Instagram className="h-4 w-4 text-gold-500" />
+              <li>
                 <a
                   href={storeConfig.instagramUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="hover:text-gold-600 transition-colors"
+                  className="flex items-center gap-2 hover:text-gold-600 transition-colors"
                 >
+                  <Instagram className="h-4 w-4 text-gold-500 flex-shrink-0" />
                   {storeConfig.instagram}
                 </a>
               </li>
@@ -98,8 +94,8 @@ export function StoreFooter() {
 
           {/* Endereco */}
           <div>
-            <h3 className="font-semibold mb-4 text-gold-700">Nossa Loja</h3>
-            <div className="flex items-start gap-2 text-sm text-muted-foreground">
+            <h3 className="font-semibold mb-3 sm:mb-4 text-sm sm:text-base text-gold-700">Nossa Loja</h3>
+            <div className="flex items-start gap-2 text-xs sm:text-sm text-muted-foreground">
               <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0 text-gold-500" />
               <p>
                 {storeConfig.address.street}, {storeConfig.address.number}
@@ -113,7 +109,7 @@ export function StoreFooter() {
           </div>
         </div>
 
-        <div className="mt-8 pt-8 border-t border-gold-200 text-center text-sm text-muted-foreground">
+        <div className="mt-6 sm:mt-8 pt-6 sm:pt-8 border-t border-gold-200 text-center text-xs sm:text-sm text-muted-foreground">
           <p>
             &copy; {new Date().getFullYear()} {storeConfig.name}. Todos os direitos
             reservados.

@@ -1,5 +1,6 @@
 import { StoreHeader } from '@/components/loja/store-header'
 import { StoreFooter } from '@/components/loja/store-footer'
+import { WhatsAppFloat } from '@/components/loja/whatsapp-float'
 import { CartProvider } from '@/contexts/cart-context'
 
 export default function LojaLayout({
@@ -13,6 +14,7 @@ export default function LojaLayout({
         <StoreHeader />
         <main className="flex-1">{children}</main>
         <StoreFooter />
+        <WhatsAppFloat />
       </div>
     </CartProvider>
   )

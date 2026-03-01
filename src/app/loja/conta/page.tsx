@@ -169,18 +169,18 @@ export default function ContaPage() {
   // Logged in view
   if (isLoggedIn && customerData) {
     return (
-      <div className="container py-8">
-        <div className="flex items-center justify-between mb-8">
+      <div className="container py-4 sm:py-8">
+        <div className="flex items-center justify-between mb-4 sm:mb-8">
           <div>
-            <h1 className="text-3xl font-bold">Minha Conta</h1>
-            <p className="text-muted-foreground">Ola, {customerData.name}!</p>
+            <h1 className="text-xl sm:text-3xl font-bold">Minha Conta</h1>
+            <p className="text-sm sm:text-base text-muted-foreground">Ola, {customerData.name}!</p>
           </div>
-          <Button variant="outline" onClick={handleLogout}>
+          <Button variant="outline" size="sm" onClick={handleLogout}>
             Sair
           </Button>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
           {/* Quick Links */}
           <Link href="/loja/pedidos">
             <Card className="cursor-pointer hover:shadow-md transition-shadow">
@@ -216,12 +216,12 @@ export default function ContaPage() {
         </div>
 
         {/* Account Info */}
-        <Card className="mt-8">
-          <CardHeader>
-            <CardTitle>Dados da Conta</CardTitle>
+        <Card className="mt-4 sm:mt-8">
+          <CardHeader className="pb-3 sm:pb-6">
+            <CardTitle className="text-base sm:text-lg">Dados da Conta</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Nome</Label>
                 <Input value={customerData.name} disabled />
@@ -248,9 +248,9 @@ export default function ContaPage() {
 
   // Login/Register view
   return (
-    <div className="container py-8">
+    <div className="container py-4 sm:py-8">
       <div className="max-w-md mx-auto">
-        <h1 className="text-3xl font-bold text-center mb-8">Minha Conta</h1>
+        <h1 className="text-xl sm:text-3xl font-bold text-center mb-6 sm:mb-8">Minha Conta</h1>
 
         <Tabs defaultValue="login" className="w-full">
           <TabsList className="grid w-full grid-cols-2">
@@ -342,23 +342,22 @@ export default function ContaPage() {
                     onChange={(e) => setRegisterData(prev => ({ ...prev, email: e.target.value }))}
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="register-phone">Telefone</Label>
                     <Input
                       id="register-phone"
-                      placeholder="+55 (79) 99999-9999"
+                      type="tel"
+                      placeholder="(79) 99999-9999"
                       value={registerData.phone}
                       onChange={(e) => setRegisterData(prev => ({ ...prev, phone: e.target.value }))}
                     />
-                    <p className="text-xs text-muted-foreground">
-                      Formato: +55 (DDD) 99999-9999
-                    </p>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="register-cpf">CPF</Label>
                     <Input
                       id="register-cpf"
+                      inputMode="numeric"
                       placeholder="000.000.000-00"
                       value={registerData.cpf}
                       onChange={(e) => setRegisterData(prev => ({ ...prev, cpf: e.target.value }))}

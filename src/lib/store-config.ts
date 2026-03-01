@@ -55,11 +55,11 @@ export const storeConfig: StoreConfig = {
   favicon: '/favicon.ico',
 
   // Contact
-  phone: '(79) 99999-9999',
-  whatsapp: '5579999999999',
+  phone: '(79) 99972-5821',
+  whatsapp: '5579999725821',
   email: 'contato@smartacessorios.com.br',
   instagram: '@smartmaisacessorios',
-  instagramUrl: 'https://instagram.com/smartmaisacessorios',
+  instagramUrl: 'https://www.instagram.com/smartmaisacessorios_/',
 
   // Address
   address: {

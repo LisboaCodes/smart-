@@ -67,12 +67,12 @@ export default function CarrinhoPage() {
 
   if (items.length === 0) {
     return (
-      <div className="container py-16">
+      <div className="container py-12 sm:py-16">
         <Card className="max-w-lg mx-auto text-center">
-          <CardContent className="pt-8 pb-8">
-            <ShoppingCart className="h-16 w-16 mx-auto text-muted-foreground/30 mb-4" />
-            <h2 className="text-2xl font-bold mb-2">Seu carrinho esta vazio</h2>
-            <p className="text-muted-foreground mb-6">
+          <CardContent className="pt-8 pb-8 px-4">
+            <ShoppingCart className="h-12 w-12 sm:h-16 sm:w-16 mx-auto text-muted-foreground/30 mb-4" />
+            <h2 className="text-xl sm:text-2xl font-bold mb-2">Seu carrinho esta vazio</h2>
+            <p className="text-sm sm:text-base text-muted-foreground mb-6">
               Que tal explorar nossos produtos?
             </p>
             <Button asChild>
@@ -88,17 +88,17 @@ export default function CarrinhoPage() {
   }
 
   return (
-    <div className="container py-8">
-      <h1 className="text-3xl font-bold mb-8">Carrinho de Compras</h1>
+    <div className="container py-4 sm:py-8">
+      <h1 className="text-xl sm:text-3xl font-bold mb-4 sm:mb-8">Carrinho de Compras</h1>
 
-      <div className="grid lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-8">
         {/* Lista de itens */}
-        <div className="lg:col-span-2 space-y-4">
+        <div className="lg:col-span-2 space-y-3 sm:space-y-4">
           {items.map((item) => (
             <Card key={`${item.id}-${item.variationId || ''}`}>
-              <CardContent className="p-4">
-                <div className="flex gap-4">
-                  <div className="relative w-24 h-24 rounded-md overflow-hidden bg-gradient-to-br from-gold-50 to-gold-100 border border-gold-200 flex-shrink-0">
+              <CardContent className="p-3 sm:p-4">
+                <div className="flex gap-3 sm:gap-4">
+                  <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-md overflow-hidden bg-gradient-to-br from-gold-50 to-gold-100 border border-gold-200 flex-shrink-0">
                     <ProductImage
                       src={item.image || '/placeholder.svg'}
                       alt={item.name}
@@ -107,26 +107,26 @@ export default function CarrinhoPage() {
                     />
                   </div>
 
-                  <div className="flex-1">
-                    <h3 className="font-medium">{item.name}</h3>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-medium text-sm sm:text-base line-clamp-2">{item.name}</h3>
                     {item.variationName && (
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-xs sm:text-sm text-muted-foreground">
                         {item.variationName}
                       </p>
                     )}
                     <div className="flex items-center gap-2 mt-1">
-                      <p className="text-lg font-bold text-primary">
+                      <p className="text-base sm:text-lg font-bold text-primary">
                         {formatCurrency(item.price)}
                       </p>
                       {item.originalPrice && item.originalPrice > item.price && (
-                        <p className="text-sm text-muted-foreground line-through">
+                        <p className="text-xs sm:text-sm text-muted-foreground line-through">
                           {formatCurrency(item.originalPrice)}
                         </p>
                       )}
                     </div>
 
-                    <div className="flex items-center justify-between mt-4">
-                      <div className="flex items-center gap-2">
+                    <div className="flex items-center justify-between mt-2 sm:mt-4">
+                      <div className="flex items-center gap-1.5 sm:gap-2">
                         <Button
                           variant="outline"
                           size="icon"
@@ -135,7 +135,7 @@ export default function CarrinhoPage() {
                         >
                           <Minus className="h-3 w-3" />
                         </Button>
-                        <span className="w-8 text-center font-medium">
+                        <span className="w-7 sm:w-8 text-center text-sm font-medium">
                           {item.quantity}
                         </span>
                         <Button
@@ -147,21 +147,16 @@ export default function CarrinhoPage() {
                         >
                           <Plus className="h-3 w-3" />
                         </Button>
-                        {item.quantity >= item.maxStock && (
-                          <span className="text-xs text-muted-foreground">
-                            (max)
-                          </span>
-                        )}
                       </div>
 
-                      <div className="flex items-center gap-4">
-                        <span className="font-bold">
+                      <div className="flex items-center gap-2 sm:gap-4">
+                        <span className="font-bold text-sm sm:text-base">
                           {formatCurrency(item.price * item.quantity)}
                         </span>
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="text-destructive"
+                          className="h-8 w-8 text-destructive"
                           onClick={() => removeItem(item.id, item.variationId)}
                         >
                           <Trash2 className="h-4 w-4" />
@@ -177,19 +172,19 @@ export default function CarrinhoPage() {
 
         {/* Resumo */}
         <div>
-          <Card className="sticky top-24">
-            <CardHeader>
-              <CardTitle>Resumo do Pedido</CardTitle>
+          <Card className="sticky top-20 sm:top-24">
+            <CardHeader className="pb-3 sm:pb-6">
+              <CardTitle className="text-base sm:text-lg">Resumo do Pedido</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex justify-between">
+            <CardContent className="space-y-3 sm:space-y-4">
+              <div className="flex justify-between text-sm sm:text-base">
                 <span className="text-muted-foreground">Subtotal</span>
                 <span>{formatCurrency(subtotal)}</span>
               </div>
 
               {/* CEP Input */}
               <div className="space-y-2">
-                <label className="text-sm font-medium">Calcular Frete</label>
+                <label className="text-xs sm:text-sm font-medium">Calcular Frete</label>
                 <div className="flex gap-2">
                   <Input
                     placeholder="00000-000"
@@ -199,8 +194,9 @@ export default function CarrinhoPage() {
                       setZipError('')
                     }}
                     maxLength={9}
+                    className="text-sm"
                   />
-                  <Button variant="outline" onClick={handleCalculateShipping}>
+                  <Button variant="outline" onClick={handleCalculateShipping} className="text-sm flex-shrink-0">
                     Calcular
                   </Button>
                 </div>
@@ -214,7 +210,7 @@ export default function CarrinhoPage() {
                 )}
               </div>
 
-              <div className="flex justify-between">
+              <div className="flex justify-between text-sm sm:text-base">
                 <span className="text-muted-foreground">Frete</span>
                 <span>
                   {shippingCost === null ? (
@@ -227,13 +223,13 @@ export default function CarrinhoPage() {
                 </span>
               </div>
               {discount > 0 && (
-                <div className="flex justify-between text-green-600">
+                <div className="flex justify-between text-sm sm:text-base text-green-600">
                   <span>Desconto</span>
                   <span>-{formatCurrency(discount)}</span>
                 </div>
               )}
               <Separator />
-              <div className="flex justify-between text-lg font-bold">
+              <div className="flex justify-between text-base sm:text-lg font-bold">
                 <span>Total</span>
                 <span className="text-primary">{formatCurrency(total)}</span>
               </div>
@@ -244,12 +240,12 @@ export default function CarrinhoPage() {
                     <Tag className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
                       placeholder="Cupom de desconto"
-                      className="pl-9"
+                      className="pl-9 text-sm"
                       value={couponCode}
                       onChange={(e) => setCouponCode(e.target.value)}
                     />
                   </div>
-                  <Button variant="outline" onClick={handleApplyCoupon}>
+                  <Button variant="outline" onClick={handleApplyCoupon} className="text-sm flex-shrink-0">
                     Aplicar
                   </Button>
                 </div>
@@ -261,14 +257,14 @@ export default function CarrinhoPage() {
                 )}
               </div>
             </CardContent>
-            <CardFooter className="flex-col gap-3">
-              <Button className="w-full" size="lg" asChild>
+            <CardFooter className="flex-col gap-2 sm:gap-3">
+              <Button className="w-full h-11 sm:h-12 text-sm sm:text-base" size="lg" asChild>
                 <Link href="/loja/checkout">
                   Finalizar Compra
                   <ArrowRight className="h-4 w-4 ml-2" />
                 </Link>
               </Button>
-              <Button variant="ghost" className="w-full" asChild>
+              <Button variant="ghost" className="w-full text-sm" asChild>
                 <Link href="/loja">Continuar comprando</Link>
               </Button>
             </CardFooter>
